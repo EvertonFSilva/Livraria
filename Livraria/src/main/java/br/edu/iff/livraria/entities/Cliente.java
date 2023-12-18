@@ -1,31 +1,47 @@
 package br.edu.iff.livraria.entities;
 
-import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 
 @Entity
-public class Cliente implements Serializable {
+public class Cliente extends Pessoa {
 
-	protected static final long serialVersionUID = 1L;
+	@OneToMany
+	@JoinColumn(name = "id_cliente")
+	private List<Pedido> pedido;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
-	
+	@ElementCollection
+	@Column(name = "historico_compras")
+	private List<Pedido> historicoPedidos;
+
+	public Cliente(String cpf, String nome, String senha, String email, String telefone, String endereco) {
+		super(cpf, nome, senha, email, telefone, endereco);
+		this.pedido = new ArrayList<>();
+		this.historicoPedidos = new ArrayList<>();
+	}
+
 	public Cliente() {
-		
-	}
-	
-	public Long getId() {
-		return id;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void adicionarPedido(Pedido pedido) {
+		this.pedido.add(pedido);
 	}
 
+	public void removerPedido(Pedido pedido) {
+		this.pedido.remove(pedido);
+	}
+
+	public void adicionarPedidoAoHistorico(Pedido pedido) {
+		this.historicoPedidos.add(pedido);
+	}
+
+	public void removerPedidoDoHistorico(Pedido pedido) {
+		this.historicoPedidos.remove(pedido);
+	}
 }

@@ -7,16 +7,18 @@ import java.util.List;
 import io.micrometer.common.lang.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-@Entity
+@MappedSuperclass
 public class Pessoa implements Serializable {
 
 	protected static final long serialVersionUID = 1L;
@@ -34,6 +36,10 @@ public class Pessoa implements Serializable {
 	@Column(length = 60)
 	private String nome;
 
+	@Size(min = 1, max = 20, message = "Tem que ter entre 1 e 20 caractéres")
+	@Column(length = 20)
+	private String senha;
+
 	@Email(message = "Tem que ser em formato de email")
 	@Column(length = 60)
 	private String email;
@@ -42,22 +48,26 @@ public class Pessoa implements Serializable {
 	@ElementCollection
 	@Size(min = 1, max = 2, message = "Tem que ter entre 1 e 2 telefones")
 	@Column(length = 16)
-	private List<@Pattern(regexp = "\\([0-9]{2}\\) [0-9]{5}-[0-9]{4}", message = "Deve seguir o padrão do Telefone") String> telefone = new ArrayList<String>();
+	private List<@Pattern(regexp = "\\([0-9]{2}\\) [0-9]{5}-[0-9]{4}", message = "Deve seguir o padrão do Telefone") String> telefones = new ArrayList<String>();
 
 	@Size(min = 20, max = 100, message = "Tem que ter entre 20 e 100 caractéres")
 	@Column(length = 100)
 	private String endereco;
 
-	public Pessoa(String cpf, String nome, String email, String telefone, String endereco) {
+	@ManyToOne()
+	@JoinColumn(name = "fk_pessoa")
+	private Usuario usuario;
+
+	public Pessoa(String cpf, String nome, String senha, String email, String telefone, String endereco) {
 		this.cpf = cpf;
 		this.nome = nome;
+		this.senha = senha;
 		this.email = email;
-		this.telefone.add(telefone);
+		this.telefones.add(telefone);
 		this.endereco = endereco;
 	}
 
 	public Pessoa() {
-
 	}
 
 	public Long getId() {
@@ -84,6 +94,14 @@ public class Pessoa implements Serializable {
 		this.nome = nome;
 	}
 
+	public String getSenha() {
+		return senha;
+	}
+
+	public void setSenha(String senha) {
+		this.nome = senha;
+	}
+
 	public String getEmail() {
 		return email;
 	}
@@ -92,12 +110,16 @@ public class Pessoa implements Serializable {
 		this.email = email;
 	}
 
-	public List<String> getTelefone() {
-		return telefone;
+	public void adicionarTelefone(String telefone) {
+		this.telefones.add(telefone);
 	}
 
-	public void setTelefone(List<String> telefone) {
-		this.telefone = telefone;
+	public void removerTelefone(String telefone) {
+		this.telefones.remove(telefone);
+	}
+
+	public List<String> getTelefones() {
+		return telefones;
 	}
 
 	public String getEndereco() {
