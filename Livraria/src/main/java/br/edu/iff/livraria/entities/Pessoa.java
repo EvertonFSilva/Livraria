@@ -28,17 +28,13 @@ public class Pessoa implements Serializable {
 	private Long id;
 
 	@NotBlank(message = "Não pode ser em branco ou nulo")
-	@Pattern(regexp = "[0-9]{3}.[0-9]{3}.[0-9]{3}-[0-9]{2}", message = "Deve seguir o padrão do CPF")
-	@Column(unique = true, length = 14)
+	@Pattern(regexp = "[0-9]{11}", message = "Deve seguir o padrão do CPF")
+	@Column(unique = true, length = 11)
 	private String cpf;
 
-	@Size(min = 1, max = 60, message = "Tem que ter entre 1 e 60 caractéres")
+	@Size(min = 3, max = 60, message = "Tem que ter entre 3 e 60 caractéres")
 	@Column(length = 60)
 	private String nome;
-
-	@Size(min = 1, max = 20, message = "Tem que ter entre 1 e 20 caractéres")
-	@Column(length = 20)
-	private String senha;
 
 	@Email(message = "Tem que ser em formato de email")
 	@Column(length = 60)
@@ -47,21 +43,20 @@ public class Pessoa implements Serializable {
 	@Nullable
 	@ElementCollection
 	@Size(min = 1, max = 2, message = "Tem que ter entre 1 e 2 telefones")
-	@Column(length = 16)
-	private List<@Pattern(regexp = "\\([0-9]{2}\\) [0-9]{5}-[0-9]{4}", message = "Deve seguir o padrão do Telefone") String> telefones = new ArrayList<String>();
+	@Column(length = 11)
+	private List<@Pattern(regexp = "[0-9]{9,11}", message = "Deve seguir o padrão do Telefone") String> telefones = new ArrayList<>();
 
-	@Size(min = 20, max = 100, message = "Tem que ter entre 20 e 100 caractéres")
+	@Size(min = 10, max = 100, message = "Tem que ter entre 20 e 100 caractéres")
 	@Column(length = 100)
 	private String endereco;
 
 	@ManyToOne()
-	@JoinColumn(name = "fk_pessoa")
+	@JoinColumn(name = "pessoa_fk")
 	private Usuario usuario;
 
-	public Pessoa(String cpf, String nome, String senha, String email, String telefone, String endereco) {
+	public Pessoa(String cpf, String nome, String email, String telefone, String endereco) {
 		this.cpf = cpf;
 		this.nome = nome;
-		this.senha = senha;
 		this.email = email;
 		this.telefones.add(telefone);
 		this.endereco = endereco;
@@ -94,14 +89,6 @@ public class Pessoa implements Serializable {
 		this.nome = nome;
 	}
 
-	public String getSenha() {
-		return senha;
-	}
-
-	public void setSenha(String senha) {
-		this.nome = senha;
-	}
-
 	public String getEmail() {
 		return email;
 	}
@@ -110,11 +97,15 @@ public class Pessoa implements Serializable {
 		this.email = email;
 	}
 
+	public void setTelefones(List<String> telefones) {
+		this.telefones = telefones;
+	}
+
 	public void adicionarTelefone(String telefone) {
 		this.telefones.add(telefone);
 	}
 
-	public void removerTelefone(String telefone) {
+	public void deletarTelefone(String telefone) {
 		this.telefones.remove(telefone);
 	}
 
@@ -128,5 +119,13 @@ public class Pessoa implements Serializable {
 
 	public void setEndereco(String endereco) {
 		this.endereco = endereco;
+	}
+	
+	public Usuario getUsuario() {
+		return usuario;
+	}
+
+	public void setUsuario(Usuario usuario) {
+		this.usuario = usuario;
 	}
 }

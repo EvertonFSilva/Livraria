@@ -34,9 +34,16 @@ public class Livro implements Serializable {
 	private String genero;
 
 	@Positive(message = "Tem que ser maior que 0")
+	@Column(name = "qtd_paginas")
 	private int qtdPaginas;
+	
+	@Positive(message = "Tem que ser maior que 0")
+    private float precoVenda;
 
-	public Livro(String titulo, String autor, String genero, int qtdPaginas) {
+    @Positive(message = "Tem que ser maior que 0")
+    private float precoAluguel;
+
+	public Livro(String titulo, String autor, String genero, int qtdPaginas, float precoVenda, float precoAluguel) {
 		this.titulo = titulo;
 		this.autor = autor;
 		this.genero = genero;
@@ -85,5 +92,21 @@ public class Livro implements Serializable {
 
 	public void setQtdPaginas(int qtdPaginas) {
 		this.qtdPaginas = qtdPaginas;
+	}
+	
+    public float getPrecoVenda() {
+		return precoVenda;
+	}
+
+	public void setPrecoVenda(float precoVenda) {
+		this.precoVenda = precoVenda;
+	}
+
+	public float getPrecoAluguel() {
+		return precoAluguel;
+	}
+
+	public void setPrecoAluguel(float precoAluguel) {
+		this.precoAluguel = precoAluguel;
 	}
 }

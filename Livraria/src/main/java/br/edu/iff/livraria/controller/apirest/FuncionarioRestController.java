@@ -1,118 +1,68 @@
 package br.edu.iff.livraria.controller.apirest;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import br.edu.iff.livraria.entities.Funcionario;
+import br.edu.iff.livraria.service.FuncionarioService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
-import io.swagger.v3.oas.annotations.Operation;
+import java.util.List;
 
 @RestController
 @RequestMapping(path = "/api/v1/funcionario")
 public class FuncionarioRestController {
 
-	@PostMapping("")
-	@ResponseBody
-	@Operation(summary = "Adicionar um funcionario em expecifíco")
-	public String adicionarFuncionario(String nome, String email, String telefone, String endereco, String cargo,
-			float salario) {
-		return "Funcionario adicionado: " + nome;
-	}
+    @Autowired
+    private FuncionarioService funcionarioService;
 
-	@PutMapping("/{id}")
-	@ResponseBody
-	@Operation(summary = "Atualizar um funcionario em expecifíco")
-	public String atualizarFuncionario(@PathVariable("id") Long id, String nome, String email, String senha,
-			String cargo, float salario) {
-		return "Funcionario atualizado.";
-	}
+    @PostMapping("")
+    @ResponseBody
+    public String adicionarFuncionario(String login, String senha, String cpf, String nome, String email, String telefone, String endereco, String cargo, float salario) {
+        return funcionarioService.adicionarFuncionario(login, senha, cpf, nome, email, telefone, endereco, cargo, salario);
+    }
 
-	@DeleteMapping("/{id}")
-	@ResponseBody
-	@Operation(summary = "Deletar um funcionario em expecifíco")
-	public String deletarFuncionario(@PathVariable("id") Long id) {
-		return "Funcionario deletado.";
-	}
+    @PutMapping("/{id}")
+    @ResponseBody
+    public String atualizarFuncionario(@PathVariable("id") Long id, @RequestParam String cpf, String nome, String email, String endereco, String cargo, float salario) {
+        return funcionarioService.atualizarFuncionario(id, cpf, nome, email, endereco, cargo, salario);
+    }
 
-	@GetMapping("/{id}")
-	@ResponseBody
-	@Operation(summary = "Retornar um funcionario em expecifíco")
-	public String buscarFuncionario(@PathVariable("id") Long id) {
-		return "Funcionario retornado.";
-	}
+    @DeleteMapping("/{id}")
+    @ResponseBody
+    public String deletarFuncionario(@PathVariable("id") Long id) {
+        String resultado = funcionarioService.deletarFuncionario(id);
+        return resultado;
+    }
 
-	@GetMapping("")
-	@ResponseBody
-	@Operation(summary = "Listar todos os funcionarios")
-	public String listarFuncionarios() {
-		return "Funcionarios listados.";
-	}
+    @GetMapping("/{id}")
+    @ResponseBody
+    public Funcionario buscarFuncionario(@PathVariable("id") Long id) {
+        return funcionarioService.buscarFuncionario(id);
+    }
 
-	@PostMapping("/{id}/telefone")
-	@ResponseBody
-	@Operation(summary = "Adicionar um telefone em um funcionario em expecifíco")
-	public String adicionarTelefone(@PathVariable("id") Long id, String telefone) {
-		return "Telefone adicionado ao funcionario.";
-	}
+    @GetMapping("")
+    @ResponseBody
+    public List<Funcionario> listarFuncionarios() {
+        return funcionarioService.listarFuncionarios();
+    }
 
-	@DeleteMapping("/{id}/telefone")
-	@ResponseBody
-	@Operation(summary = "Deletar um telefone em um funcionario em expecifíco")
-	public String deletarTelefone(@PathVariable("id") Long id, String telefone) {
-		return "Telefone deletado do funcionario.";
-	}
+    @PostMapping("/{id}/telefone")
+    @ResponseBody
+    public String adicionarTelefone(@PathVariable("id") Long id, @RequestParam String telefone) {
+        String resultado = funcionarioService.adicionarTelefone(id, telefone);
+        return resultado;
+    }
 
-	@GetMapping("/{id}/telefones")
-	@ResponseBody
-	@Operation(summary = "Listar os telefones de um funcionario em expecifíco")
-	public String listarTelefones(@PathVariable("id") Long id) {
-		return "Lista de telefones.";
-	}
+    @DeleteMapping("/{id}/telefone")
+    @ResponseBody
+    public String deletarTelefone(@PathVariable("id") Long id, @RequestParam String telefone) {
+        String resultado = funcionarioService.deletarTelefone(id, telefone);
+        return resultado;
+    }
 
-	@PostMapping("/{id}/venda")
-	@ResponseBody
-	@Operation(summary = "Adicionar uma venda em um funcionario em expecifíco")
-	public String adicionarVenda(@PathVariable("id") Long id, Long vId) {
-		return "Venda adicionada ao funcionario.";
-	}
-
-	@DeleteMapping("/{id}/venda")
-	@ResponseBody
-	@Operation(summary = "Deletar uma venda em um funcionario em expecifíco")
-	public String deletarVenda(@PathVariable("id") Long id, Long vId) {
-		return "Venda deletada do funcionario.";
-	}
-
-	@GetMapping("/{id}/vendas")
-	@ResponseBody
-	@Operation(summary = "Listar as vendas de um funcionario em expecifíco")
-	public String listarVendas(@PathVariable("id") Long id) {
-		return "Lista de vendas do funcionaio.";
-	}
-
-	@PostMapping("/{id}/aluguel")
-	@ResponseBody
-	@Operation(summary = "Adicionar um aluguel em um funcionario em expecifíco")
-	public String adicionarAluguel(@PathVariable("id") Long id, Long aId) {
-		return "Aluguel adicionado ao funcionario.";
-	}
-
-	@DeleteMapping("/{id}/aluguel")
-	@ResponseBody
-	@Operation(summary = "Deletar uma venda em um funcionario em expecifíco")
-	public String deletarAluguel(@PathVariable("id") Long id, Long aId) {
-		return "Aluguel deletado do funcionario.";
-	}
-
-	@GetMapping("/{id}/alugueis")
-	@ResponseBody
-	@Operation(summary = "Listar as vendas de um funcionario em expecifíco")
-	public String listarAluguel(@PathVariable("id") Long id) {
-		return "Lista de alugueis do funcionaio.";
-	}
-
+    @GetMapping("/{id}/telefones")
+    @ResponseBody
+    public String listarTelefones(@PathVariable("id") Long id) {
+        String resultado = funcionarioService.listarTelefones(id);
+        return resultado;
+    }
 }

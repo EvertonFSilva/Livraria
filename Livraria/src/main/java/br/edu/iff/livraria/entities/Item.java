@@ -2,12 +2,14 @@ package br.edu.iff.livraria.entities;
 
 import java.io.Serializable;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.Positive;
 
 @Entity
@@ -24,16 +26,20 @@ public class Item implements Serializable {
 
     private int quantidade;
 
-    private String tipo;
+    private int tipo;
 
     @Positive(message = "Tem que ser maior que 0")
+    @Column(name = "preco_unitario")
     private float precoUnitario;
 
     @ManyToOne
     @JoinColumn(name = "pedido_id")
     private Pedido pedido;
 
-    public Item(Livro livro, int quantidade, String tipo, float precoUnitario) {
+    @OneToOne(mappedBy = "item")
+    private Aluguel aluguel;
+    
+    public Item(Livro livro, int quantidade, int tipo, float precoUnitario) {
         this.livro = livro;
         this.quantidade = quantidade;
         this.tipo = tipo;
@@ -67,11 +73,11 @@ public class Item implements Serializable {
         this.quantidade = quantidade;
     }
 
-    public String getTipo() {
+    public int getTipo() {
         return tipo;
     }
 
-    public void setTipo(String tipo) {
+    public void setTipo(int tipo) {
         this.tipo = tipo;
     }
 
@@ -82,12 +88,20 @@ public class Item implements Serializable {
     public void setPrecoUnitario(float precoUnitario) {
         this.precoUnitario = precoUnitario;
     }
-    
+
     public Pedido getPedido() {
         return pedido;
     }
 
     public void setPedido(Pedido pedido) {
         this.pedido = pedido;
+    }
+
+    public Aluguel getAluguel() {
+        return aluguel;
+    }
+
+    public void setAluguel(Aluguel aluguel) {
+        this.aluguel = aluguel;
     }
 }

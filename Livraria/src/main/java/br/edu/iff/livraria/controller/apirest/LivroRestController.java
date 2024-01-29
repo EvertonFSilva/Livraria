@@ -1,53 +1,63 @@
 package br.edu.iff.livraria.controller.apirest;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
+import br.edu.iff.livraria.entities.Livro;
+import br.edu.iff.livraria.service.LivroService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(path = "/api/v1/livro")
 public class LivroRestController {
 
-	@PostMapping("")
-	@ResponseBody
-	@Operation(summary = "Adicionar um livro em expecifíco")
-	public String adicionarLivro(Long id, String titulo, String autor, String genero, int qtdPags, float precoVenda, float precoAluguel) {
-		return "livro adicionado.";
-	}
+    @Autowired
+    private LivroService livroService;
 
-	@PutMapping("/{id}")
-	@ResponseBody
-	@Operation(summary = "Atualizar um livro em expecifíco")
-	public String atualizarLivro(@PathVariable("id") Long id, String titulo, String autor, String genero, int qtdPags, float precoVenda, float precoAluguel) {
-		return "Livro atualizado.";
-	}
+    @PostMapping("")
+    @ResponseBody
+    @Operation(summary = "Adicionar um livro em específico")
+    public String adicionarLivro(@RequestParam String titulo,
+                                 @RequestParam String autor,
+                                 @RequestParam String genero,
+                                 @RequestParam int qtdPaginas,
+                                 @RequestParam float precoVenda,
+                                 @RequestParam float precoAluguel) {
+        return livroService.adicionarLivro(titulo, autor, genero, qtdPaginas, precoVenda, precoAluguel);
+    }
 
-	@DeleteMapping("/{id}")
-	@ResponseBody
-	@Operation(summary = "Deletar um livro em expecifíco")
-	public String deletarLivro(@PathVariable("id") Long id) {
-		return "Livro deletado.";
-	}
+    @PutMapping("/{id}")
+    @ResponseBody
+    @Operation(summary = "Atualizar um livro em específico")
+    public String atualizarLivro(@PathVariable("id") Long id,
+                                 @RequestParam String titulo,
+                                 @RequestParam String autor,
+                                 @RequestParam String genero,
+                                 @RequestParam int qtdPaginas,
+                                 @RequestParam float precoVenda,
+                                 @RequestParam float precoAluguel) {
+        return livroService.atualizarLivro(id, titulo, autor, genero, qtdPaginas, precoVenda, precoAluguel);
+    }
 
-	@GetMapping("/{id}")
-	@ResponseBody
-	@Operation(summary = "Retornar um livro em expecifíco")
-	public String buscarLivro(@PathVariable("id") Long id) {
-		return "Livro retornado.";
-	}
+    @DeleteMapping("/{id}")
+    @ResponseBody
+    @Operation(summary = "Deletar um livro em específico")
+    public String deletarLivro(@PathVariable("id") Long id) {
+        return livroService.deletarLivro(id);
+    }
 
-	@GetMapping("")
-	@ResponseBody
-	@Operation(summary = "Listar todos os livros")
-	public String listarLivros() {
-		return "Livros listados.";
-	}
-	
+    @GetMapping("/{id}")
+    @ResponseBody
+    @Operation(summary = "Retornar um livro em específico")
+    public Livro buscarLivro(@PathVariable("id") Long id) {
+        return livroService.buscarPorId(id);
+    }
+
+    @GetMapping("")
+    @ResponseBody
+    @Operation(summary = "Listar todos os livros")
+    public List<Livro> listarLivros() {
+        return livroService.listarLivros();
+    }
 }

@@ -1,18 +1,15 @@
 package br.edu.iff.livraria.entities;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 
@@ -24,30 +21,21 @@ public class Aluguel implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToMany
-    private List<Livro> livrosAlugados;
-
-    @ManyToOne
-    private Cliente cliente;
-
-    @ManyToMany
-    @JoinTable(
-        name = "aluguel_funcionario",
-        joinColumns = @JoinColumn(name = "aluguel_id"),
-        inverseJoinColumns = @JoinColumn(name = "funcionario_id")
-    )
-    private List<Funcionario> funcionarios = new ArrayList<>();
+    
+    @OneToOne
+    @JoinColumn(name = "item_id")
+    private Item item;
 
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "data_inicio")
     private Date dataInicio;
 
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "data_fim")
     private Date dataFim;
 
-    public Aluguel(List<Livro> livrosAlugados, Cliente cliente, Date dataInicio, Date dataFim) {
-        this.livrosAlugados = livrosAlugados;
-        this.cliente = cliente;
+    public Aluguel(Item item, Date dataInicio, Date dataFim) {
+        this.item = item;
         this.dataInicio = dataInicio;
         this.dataFim = dataFim;
     }
@@ -63,36 +51,12 @@ public class Aluguel implements Serializable {
         this.id = id;
     }
 
-    public List<Livro> getLivrosAlugados() {
-        return livrosAlugados;
+    public Item getItem() {
+        return item;
     }
 
-    public void adicionarLivroAlugado(Livro livro) {
-        this.livrosAlugados.add(livro);
-    }
-
-    public void removerLivroAlugado(Livro livro) {
-        this.livrosAlugados.remove(livro);
-    }
-
-    public Cliente getCliente() {
-        return cliente;
-    }
-
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
-    }
-
-    public List<Funcionario> getFuncionarios() {
-        return funcionarios;
-    }
-
-    public void adicionarFuncionario(Funcionario funcionario) {
-        this.funcionarios.add(funcionario);
-    }
-
-    public void removerFuncionario(Funcionario funcionario) {
-        this.funcionarios.remove(funcionario);
+    public void setItem(Item item) {
+        this.item = item;
     }
 
     public Date getDataInicio() {

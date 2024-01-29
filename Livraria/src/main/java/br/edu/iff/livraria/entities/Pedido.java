@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,6 +16,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Entity
 public class Pedido implements Serializable {
@@ -29,21 +32,30 @@ public class Pedido implements Serializable {
     private float valorTotal;
 
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "data_pedido")
     private Date dataPedido;
 
-    @ManyToOne
-    @JoinColumn(name = "entrega_id")
-    private Entrega entrega;
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "data_entrega")
+    private Date dataEntrega;
+
+    @NotBlank(message = "Tipo não pode ser em branco ou nulo")
+    @Size(min = 3, max = 30, message = "Tipo deve ter entre 3 e 30 caracteres")
+    private String formaPagamento;
 
     @ManyToOne
-    @JoinColumn(name = "funcionario_id")
-    private Funcionario funcionario;
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente;
 
-    public Pedido(float valorTotal, Date dataPedido, Entrega entrega, Funcionario funcionario) {
-        this.valorTotal = valorTotal;
-        this.dataPedido = dataPedido;
-        this.entrega = entrega;
-        this.funcionario = funcionario;
+    private boolean finalizado;
+	
+    public Pedido(Cliente cliente) {
+        this.cliente = cliente;
+    	this.finalizado = false;
+        this.valorTotal = 0;
+        this.dataPedido = null;
+        this.dataEntrega = null;
+        this.formaPagamento = "";
     }
 
     public Pedido() {
@@ -59,6 +71,15 @@ public class Pedido implements Serializable {
 
     public List<Item> getItens() {
         return itens;
+    }
+
+    public Item getItemById(Long itemId) {
+        for (Item item : itens) {
+            if (item.getId().equals(itemId)) {
+                return item;
+            }
+        }
+        return null;
     }
 
     public void adicionarItem(Item item) {
@@ -85,19 +106,36 @@ public class Pedido implements Serializable {
         this.dataPedido = dataPedido;
     }
 
-    public Entrega getEntrega() {
-        return entrega;
+    public Date getDataEntrega() {
+		return dataEntrega;
+	}
+
+	public void setDataEntrega(Date dataEntrega) {
+		this.dataEntrega = dataEntrega;
+	}
+
+	public String getFormaPagamento() {
+		return formaPagamento;
+	}
+
+	public void setFormaPagamento(String formaPagamento) {
+		this.formaPagamento = formaPagamento;
+	}
+	
+    public Cliente getCliente() {
+        return cliente;
     }
 
-    public void setEntrega(Entrega entrega) {
-        this.entrega = entrega;
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
     }
-
-    public Funcionario getFuncionario() {
-        return funcionario;
-    }
-
-    public void setFuncionario(Funcionario funcionario) {
-        this.funcionario = funcionario;
-    }
+	
+	public boolean getFinalizado() {
+		return finalizado;
+	}
+		
+	public void finalizar() {
+		this.finalizado = true;
+		this.dataPedido = new Date();
+	}
 }

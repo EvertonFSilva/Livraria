@@ -4,6 +4,7 @@
 |:----:|:------:|:---------:|:---------:|
 | 30/10/2023 | 0.1 | Criação do documento | [Everton Silva](https://github.com/EvertonFSilva) |
 | 02/12/2023 | 0.2 | Adição das classes usuário e pessoa, e reorganização de classes e atributos | [Everton Silva](https://github.com/EvertonFSilva) |
+| 28/01/2024 | 0.3 | Remoção das classes Entrega e FormaPagamento, e reorganização de atributos | [Everton Silva](https://github.com/EvertonFSilva) |
 
 ## Definição
 
@@ -16,6 +17,9 @@
 
 ##### *Versão 0.2*
 ![diagrama_de_Classes](./Imgs/DiagramaDeClasse_2.png)
+
+##### *Versão 0.3*
+![diagrama_de_Classes](./Imgs/DiagramaDeClasse_3.png)
 
 ## Referências
 
