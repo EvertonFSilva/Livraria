@@ -1,53 +1,78 @@
 package br.edu.iff.livraria.controller.apirest;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
+import br.edu.iff.livraria.entities.Livro;
+import br.edu.iff.livraria.service.LivroService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
-@RequestMapping(path = "/api/v1/livro")
+@RequestMapping("/api/v1/livro")
 public class LivroRestController {
 
-	@PostMapping("")
+	@Autowired
+	private LivroService livroService;
+
+	@PostMapping
 	@ResponseBody
-	@Operation(summary = "Adicionar um livro em expecifíco")
-	public String adicionarLivro(Long id, String titulo, String autor, String genero, int qtdPags, float precoVenda, float precoAluguel) {
-		return "livro adicionado.";
+	@Operation(summary = "Adicionar um livro em específico")
+	public ResponseEntity<String> adicionarLivro(@RequestParam String titulo, @RequestParam String autor,
+			@RequestParam String genero, @RequestParam int qtdPaginas, @RequestParam float preco) {
+		try {
+			String mensagem = livroService.adicionarLivro(titulo, autor, genero, qtdPaginas, preco);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao adicionar livro.");
+		}
 	}
 
 	@PutMapping("/{id}")
 	@ResponseBody
-	@Operation(summary = "Atualizar um livro em expecifíco")
-	public String atualizarLivro(@PathVariable("id") Long id, String titulo, String autor, String genero, int qtdPags, float precoVenda, float precoAluguel) {
-		return "Livro atualizado.";
+	@Operation(summary = "Atualizar um livro em específico")
+	public ResponseEntity<String> atualizarLivro(@PathVariable Long id, @RequestParam String titulo,
+			@RequestParam String autor, @RequestParam String genero, @RequestParam int qtdPaginas,
+			@RequestParam float preco) {
+		try {
+			String mensagem = livroService.atualizarLivro(id, titulo, autor, genero, qtdPaginas, preco);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao atualizar livro.");
+		}
 	}
 
 	@DeleteMapping("/{id}")
 	@ResponseBody
-	@Operation(summary = "Deletar um livro em expecifíco")
-	public String deletarLivro(@PathVariable("id") Long id) {
-		return "Livro deletado.";
+	@Operation(summary = "Deletar um livro em específico")
+	public ResponseEntity<String> deletarLivro(@PathVariable Long id) {
+		try {
+			String mensagem = livroService.deletarLivro(id);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao deletar livro.");
+		}
 	}
 
 	@GetMapping("/{id}")
 	@ResponseBody
-	@Operation(summary = "Retornar um livro em expecifíco")
-	public String buscarLivro(@PathVariable("id") Long id) {
-		return "Livro retornado.";
+	@Operation(summary = "Retornar um livro em específico")
+	public ResponseEntity<Livro> buscarLivro(@PathVariable Long id) {
+		try {
+			Livro livro = livroService.buscarPorId(id);
+			return ResponseEntity.ok(livro);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		}
 	}
 
-	@GetMapping("")
+	@GetMapping
 	@ResponseBody
 	@Operation(summary = "Listar todos os livros")
-	public String listarLivros() {
-		return "Livros listados.";
+	public ResponseEntity<List<Livro>> listarLivros() {
+		List<Livro> livros = livroService.listarLivros();
+		return ResponseEntity.ok(livros);
 	}
-	
 }

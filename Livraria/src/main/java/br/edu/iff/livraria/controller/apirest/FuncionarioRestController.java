@@ -1,118 +1,117 @@
 package br.edu.iff.livraria.controller.apirest;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import br.edu.iff.livraria.entities.Funcionario;
+import br.edu.iff.livraria.service.FuncionarioService;
 import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
-@RequestMapping(path = "/api/v1/funcionario")
+@RequestMapping("/api/v1/funcionario")
 public class FuncionarioRestController {
 
-	@PostMapping("")
+	@Autowired
+	private FuncionarioService funcionarioService;
+
+	@PostMapping
 	@ResponseBody
-	@Operation(summary = "Adicionar um funcionario em expecifíco")
-	public String adicionarFuncionario(String nome, String email, String telefone, String endereco, String cargo,
-			float salario) {
-		return "Funcionario adicionado: " + nome;
+	@Operation(summary = "Adicionar um funcionário em específico")
+	public ResponseEntity<String> adicionarFuncionario(@RequestParam String login, @RequestParam String senha,
+			@RequestParam String cpf, @RequestParam String nome, @RequestParam String email,
+			@RequestParam String telefone, @RequestParam String endereco, @RequestParam String cargo,
+			@RequestParam float salario) {
+		try {
+			String mensagem = funcionarioService.adicionarFuncionario(login, senha, cpf, nome, email, telefone,
+					endereco, cargo, salario);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao adicionar funcionário.");
+		}
 	}
 
 	@PutMapping("/{id}")
 	@ResponseBody
-	@Operation(summary = "Atualizar um funcionario em expecifíco")
-	public String atualizarFuncionario(@PathVariable("id") Long id, String nome, String email, String senha,
-			String cargo, float salario) {
-		return "Funcionario atualizado.";
+	@Operation(summary = "Atualizar um funcionário em específico")
+	public ResponseEntity<String> atualizarFuncionario(@PathVariable Long id, @RequestParam String cpf,
+			@RequestParam String nome, @RequestParam String email, @RequestParam String endereco,
+			@RequestParam String cargo, @RequestParam float salario) {
+		try {
+			String mensagem = funcionarioService.atualizarFuncionario(id, cpf, nome, email, endereco, cargo, salario);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao atualizar funcionário.");
+		}
 	}
 
 	@DeleteMapping("/{id}")
 	@ResponseBody
-	@Operation(summary = "Deletar um funcionario em expecifíco")
-	public String deletarFuncionario(@PathVariable("id") Long id) {
-		return "Funcionario deletado.";
+	@Operation(summary = "Deletar um funcionário em específico")
+	public ResponseEntity<String> deletarFuncionario(@PathVariable Long id) {
+		try {
+			String mensagem = funcionarioService.deletarFuncionario(id);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao deletar funcionário.");
+		}
 	}
 
 	@GetMapping("/{id}")
 	@ResponseBody
-	@Operation(summary = "Retornar um funcionario em expecifíco")
-	public String buscarFuncionario(@PathVariable("id") Long id) {
-		return "Funcionario retornado.";
+	@Operation(summary = "Retornar um funcionário em específico")
+	public ResponseEntity<Funcionario> buscarFuncionario(@PathVariable Long id) {
+		try {
+			Funcionario funcionario = funcionarioService.buscarPorId(id);
+			return ResponseEntity.ok(funcionario);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		}
 	}
 
-	@GetMapping("")
+	@GetMapping
 	@ResponseBody
-	@Operation(summary = "Listar todos os funcionarios")
-	public String listarFuncionarios() {
-		return "Funcionarios listados.";
+	@Operation(summary = "Listar todos os funcionários")
+	public ResponseEntity<List<Funcionario>> listarFuncionarios() {
+		List<Funcionario> funcionarios = funcionarioService.listarFuncionarios();
+		return ResponseEntity.ok(funcionarios);
 	}
 
 	@PostMapping("/{id}/telefone")
 	@ResponseBody
-	@Operation(summary = "Adicionar um telefone em um funcionario em expecifíco")
-	public String adicionarTelefone(@PathVariable("id") Long id, String telefone) {
-		return "Telefone adicionado ao funcionario.";
+	@Operation(summary = "Adicionar um telefone em um funcionário em específico")
+	public ResponseEntity<String> adicionarTelefone(@PathVariable Long id, @RequestParam String telefone) {
+		try {
+			String mensagem = funcionarioService.adicionarTelefone(id, telefone);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao adicionar telefone.");
+		}
 	}
 
 	@DeleteMapping("/{id}/telefone")
 	@ResponseBody
-	@Operation(summary = "Deletar um telefone em um funcionario em expecifíco")
-	public String deletarTelefone(@PathVariable("id") Long id, String telefone) {
-		return "Telefone deletado do funcionario.";
+	@Operation(summary = "Deletar um telefone em um funcionário em específico")
+	public ResponseEntity<String> deletarTelefone(@PathVariable Long id, @RequestParam String telefone) {
+		try {
+			String mensagem = funcionarioService.deletarTelefone(id, telefone);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao deletar telefone.");
+		}
 	}
 
 	@GetMapping("/{id}/telefones")
 	@ResponseBody
-	@Operation(summary = "Listar os telefones de um funcionario em expecifíco")
-	public String listarTelefones(@PathVariable("id") Long id) {
-		return "Lista de telefones.";
+	@Operation(summary = "Listar os telefones de um funcionário em específico")
+	public ResponseEntity<List<String>> listarTelefones(@PathVariable Long id) {
+		try {
+			List<String> telefones = funcionarioService.listarTelefones(id);
+			return ResponseEntity.ok(telefones);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		}
 	}
-
-	@PostMapping("/{id}/venda")
-	@ResponseBody
-	@Operation(summary = "Adicionar uma venda em um funcionario em expecifíco")
-	public String adicionarVenda(@PathVariable("id") Long id, Long vId) {
-		return "Venda adicionada ao funcionario.";
-	}
-
-	@DeleteMapping("/{id}/venda")
-	@ResponseBody
-	@Operation(summary = "Deletar uma venda em um funcionario em expecifíco")
-	public String deletarVenda(@PathVariable("id") Long id, Long vId) {
-		return "Venda deletada do funcionario.";
-	}
-
-	@GetMapping("/{id}/vendas")
-	@ResponseBody
-	@Operation(summary = "Listar as vendas de um funcionario em expecifíco")
-	public String listarVendas(@PathVariable("id") Long id) {
-		return "Lista de vendas do funcionaio.";
-	}
-
-	@PostMapping("/{id}/aluguel")
-	@ResponseBody
-	@Operation(summary = "Adicionar um aluguel em um funcionario em expecifíco")
-	public String adicionarAluguel(@PathVariable("id") Long id, Long aId) {
-		return "Aluguel adicionado ao funcionario.";
-	}
-
-	@DeleteMapping("/{id}/aluguel")
-	@ResponseBody
-	@Operation(summary = "Deletar uma venda em um funcionario em expecifíco")
-	public String deletarAluguel(@PathVariable("id") Long id, Long aId) {
-		return "Aluguel deletado do funcionario.";
-	}
-
-	@GetMapping("/{id}/alugueis")
-	@ResponseBody
-	@Operation(summary = "Listar as vendas de um funcionario em expecifíco")
-	public String listarAluguel(@PathVariable("id") Long id) {
-		return "Lista de alugueis do funcionaio.";
-	}
-
 }

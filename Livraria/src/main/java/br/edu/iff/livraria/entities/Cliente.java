@@ -3,8 +3,6 @@ package br.edu.iff.livraria.entities;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
@@ -12,18 +10,20 @@ import jakarta.persistence.OneToMany;
 @Entity
 public class Cliente extends Pessoa {
 
+	private static final long serialVersionUID = 1L;
+
 	@OneToMany
-	@JoinColumn(name = "id_cliente")
+	@JoinColumn(name = "cliente_id")
 	private List<Pedido> pedido;
 
-	@ElementCollection
-	@Column(name = "historico_compras")
-	private List<Pedido> historicoPedidos;
+	@OneToMany
+	@JoinColumn(name = "cliente_id")
+	private List<Aluguel> aluguel;
 
-	public Cliente(String cpf, String nome, String senha, String email, String telefone, String endereco) {
-		super(cpf, nome, senha, email, telefone, endereco);
+	public Cliente(String cpf, String nome, String email, String telefone, String endereco) {
+		super(cpf, nome, email, telefone, endereco);
 		this.pedido = new ArrayList<>();
-		this.historicoPedidos = new ArrayList<>();
+		this.aluguel = new ArrayList<>();
 	}
 
 	public Cliente() {
@@ -37,11 +37,20 @@ public class Cliente extends Pessoa {
 		this.pedido.remove(pedido);
 	}
 
-	public void adicionarPedidoAoHistorico(Pedido pedido) {
-		this.historicoPedidos.add(pedido);
+	public List<Pedido> getPedido() {
+		return pedido;
 	}
 
-	public void removerPedidoDoHistorico(Pedido pedido) {
-		this.historicoPedidos.remove(pedido);
+	public void adicionarAluguel(Aluguel aluguel) {
+		this.aluguel.add(aluguel);
 	}
+
+	public void removerAluguel(Aluguel aluguel) {
+		this.aluguel.remove(aluguel);
+	}
+
+	public List<Aluguel> getAluguel() {
+		return aluguel;
+	}
+
 }

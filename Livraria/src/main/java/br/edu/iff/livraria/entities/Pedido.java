@@ -1,11 +1,15 @@
 package br.edu.iff.livraria.entities;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,89 +19,129 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Entity
 public class Pedido implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
-    private List<Item> itens = new ArrayList<>();
+    @JsonManagedReference
+    private List<Item> itens;
 
-    private float valorTotal;
+	private float valorTotal;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date dataPedido;
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "data_pedido")
+	private LocalDateTime dataPedido;
 
-    @ManyToOne
-    @JoinColumn(name = "entrega_id")
-    private Entrega entrega;
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "data_entrega")
+	private LocalDateTime dataEntrega;
 
-    @ManyToOne
-    @JoinColumn(name = "funcionario_id")
-    private Funcionario funcionario;
+	@NotBlank(message = "Tipo não pode ser em branco ou nulo")
+	@Size(min = 3, max = 30, message = "Tipo deve ter entre 3 e 30 caracteres")
+	private String formaPagamento;
 
-    public Pedido(float valorTotal, Date dataPedido, Entrega entrega, Funcionario funcionario) {
-        this.valorTotal = valorTotal;
-        this.dataPedido = dataPedido;
-        this.entrega = entrega;
-        this.funcionario = funcionario;
-    }
+	@ManyToOne
+	@JoinColumn(name = "cliente_id")
+	@JsonIgnore
+	private Cliente cliente;
 
-    public Pedido() {
-    }
+	private boolean finalizado;
 
-    public Long getId() {
-        return id;
-    }
+	public Pedido(Cliente cliente, String formaPagamento) {
+		this.cliente = cliente;
+		this.finalizado = false;
+		this.valorTotal = 0;
+		this.dataPedido = null;
+		this.dataEntrega = null;
+		this.itens = new ArrayList<>();
+		this.formaPagamento = formaPagamento;
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public Pedido() {
+	}
 
-    public List<Item> getItens() {
-        return itens;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public void adicionarItem(Item item) {
-        this.itens.add(item);
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public void removerItem(Item item) {
-        this.itens.remove(item);
-    }
+	public List<Item> getItens() {
+		return itens;
+	}
 
-    public float getValorTotal() {
-        return valorTotal;
-    }
+	public void setItens(List<Item> itens) {
+		this.itens = itens;
+	}
+	
+	public void adicionarItem(Item item) {
+		this.itens.add(item);
+		item.setPedido(this);
+	}
 
-    public void setValorTotal(float valorTotal) {
-        this.valorTotal = valorTotal;
-    }
+	public void removerItem(Item item) {
+		this.itens.remove(item);
+		item.setPedido(null);
+	}
 
-    public Date getDataPedido() {
-        return dataPedido;
-    }
+	public float getValorTotal() {
+		return valorTotal;
+	}
 
-    public void setDataPedido(Date dataPedido) {
-        this.dataPedido = dataPedido;
-    }
+	public void setValorTotal(float valorTotal) {
+		this.valorTotal = valorTotal;
+	}
 
-    public Entrega getEntrega() {
-        return entrega;
-    }
+	public LocalDateTime getDataPedido() {
+		return dataPedido;
+	}
 
-    public void setEntrega(Entrega entrega) {
-        this.entrega = entrega;
-    }
+	public void setDataPedido(LocalDateTime dataPedido) {
+		this.dataPedido = dataPedido;
+	}
 
-    public Funcionario getFuncionario() {
-        return funcionario;
-    }
+	public LocalDateTime getDataEntrega() {
+		return dataEntrega;
+	}
 
-    public void setFuncionario(Funcionario funcionario) {
-        this.funcionario = funcionario;
-    }
+	public void setDataEntrega(LocalDateTime dataEntrega) {
+		this.dataEntrega = dataEntrega;
+	}
+
+	public String getFormaPagamento() {
+		return formaPagamento;
+	}
+
+	public void setFormaPagamento(String formaPagamento) {
+		this.formaPagamento = formaPagamento;
+	}
+
+	public Cliente getCliente() {
+		return cliente;
+	}
+
+	public void setCliente(Cliente cliente) {
+		this.cliente = cliente;
+	}
+
+	public boolean isFinalizado() {
+		return finalizado;
+	}
+
+	public void finalizar() {
+	    this.finalizado = true;
+	    this.dataPedido = LocalDateTime.now();
+	    this.dataEntrega = LocalDateTime.now();
+	}
 }

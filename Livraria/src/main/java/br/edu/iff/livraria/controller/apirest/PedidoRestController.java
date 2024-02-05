@@ -1,97 +1,147 @@
 package br.edu.iff.livraria.controller.apirest;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
+import br.edu.iff.livraria.entities.Item;
+import br.edu.iff.livraria.entities.Pedido;
+import br.edu.iff.livraria.service.PedidoService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 
-@RestController
-@RequestMapping(path = "/api/v1/pedido")
+import java.time.LocalDateTime;
+import java.util.List;
 
+@RestController
+@RequestMapping("/api/v1/pedido")
 public class PedidoRestController {
 
-	@PostMapping("")
+	@Autowired
+	private PedidoService pedidoService;
+
+	@PostMapping
 	@ResponseBody
-	@Operation(summary = "Adicionar um pedido em expecifíco")
-	public String adicionarPedido(Long id) {
-		return "Pedido adicionado.";
+	@Operation(summary = "Adicionar um pedido em específico")
+	public ResponseEntity<String> adicionarPedido(@RequestParam Long clienteId, @RequestParam String formaPagamento) {
+		try {
+			String mensagem = pedidoService.adicionarPedido(clienteId, formaPagamento);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao adicionar pedido.");
+		}
 	}
 
 	@PutMapping("/{id}")
 	@ResponseBody
-	@Operation(summary = "Atualizar um pedido em expecifíco")
-	public String atualizarPedido(@PathVariable("id") Long id) {
-		return "Pedido atualizado.";
+	@Operation(summary = "Atualizar um pedido em específico")
+	public ResponseEntity<String> atualizarPedido(@PathVariable("id") Long id, @RequestParam Long clienteId,
+			@RequestParam float valorTotal,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataPedido,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataEntrega,
+			@RequestParam String formaPagamento) {
+
+		try {
+			String mensagem = pedidoService.atualizarPedido(id, clienteId, valorTotal, dataPedido, dataEntrega,
+					formaPagamento);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao atualizar pedido.");
+		}
 	}
 
 	@DeleteMapping("/{id}")
 	@ResponseBody
-	@Operation(summary = "Deletar um pedido em expecifíco")
-	public String deletarPedido(@PathVariable("id") Long id) {
-		return "Pedido deletado.";
+	@Operation(summary = "Deletar um pedido em específico")
+	public ResponseEntity<String> deletarPedido(@PathVariable("id") Long id) {
+		try {
+			String mensagem = pedidoService.deletarPedido(id);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao deletar pedido.");
+		}
 	}
 
 	@GetMapping("/{id}")
 	@ResponseBody
-	@Operation(summary = "Retornar um pedido em expecifíco")
-	public String buscarPedido(@PathVariable("id") Long id) {
-		return "Pedido retornado.";
+	@Operation(summary = "Retornar um pedido em específico")
+	public ResponseEntity<Pedido> buscarPedido(@PathVariable("id") Long id) {
+		try {
+			Pedido pedido = pedidoService.buscarPorId(id);
+			return ResponseEntity.ok(pedido);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		}
 	}
 
 	@PatchMapping("/{id}")
 	@ResponseBody
-	@Operation(summary = "Finalizar um pedido em expecifíco")
-	public String finalizarPedido(@PathVariable("id") Long id) {
-		return "Pedido finalizado.";
+	@Operation(summary = "Finalizar um pedido em específico")
+	public ResponseEntity<String> finalizarPedido(@PathVariable("id") Long id) {
+		try {
+			String mensagem = pedidoService.finalizarPedido(id);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao finalizar pedido.");
+		}
 	}
 
-	@GetMapping("")
+	@GetMapping
 	@ResponseBody
 	@Operation(summary = "Listar todos os pedidos")
-	public String listarPedidos() {
-		return "Pedidos listados.";
+	public ResponseEntity<List<Pedido>> listarPedidos() {
+		List<Pedido> pedidos = pedidoService.listarPedidos();
+		return ResponseEntity.ok(pedidos);
 	}
 
 	@PostMapping("/{id}/item")
 	@ResponseBody
-	@Operation(summary = "Adicionar um item ao pedido em um cliente em expecifíco")
-	public String adicionarItem(@PathVariable("id") Long id, Long iId) {
-		return "Item adicionado ao pedido.";
+	@Operation(summary = "Adicionar um item ao pedido em um cliente em específico")
+	public ResponseEntity<String> adicionarItem(@PathVariable("id") Long id, @RequestParam String titulo,
+			@RequestParam int quantidade) {
+		try {
+			String mensagem = pedidoService.adicionarItemAoPedido(id, titulo, quantidade);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao adicionar item ao pedido.");
+		}
 	}
 
 	@DeleteMapping("/{id}/item")
 	@ResponseBody
-	@Operation(summary = "Deletar um livro do pedido em um cliente em expecifíco")
-	public String deletarItem(@PathVariable("id") Long id, Long iId) {
-		return "Item deletado do pedido.";
+	@Operation(summary = "Deletar um livro do pedido em um cliente em específico")
+	public ResponseEntity<String> deletarItem(@PathVariable("id") Long id, @RequestParam Long itemId) {
+		try {
+			String mensagem = pedidoService.deletarItemDoPedido(id, itemId);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao deletar item do pedido.");
+		}
 	}
 
 	@GetMapping("/{id}/itens")
 	@ResponseBody
-	@Operation(summary = "Listar os itens do pedido de um cliente em expecifíco")
-	public String listarItens(@PathVariable("id") Long id) {
-		return "Lista de itens do pedido.";
+	@Operation(summary = "Listar os itens do pedido de um cliente em específico")
+	public ResponseEntity<List<Item>> listarItens(@PathVariable("id") Long id) {
+		try {
+			List<Item> itens = pedidoService.listarItensDoPedido(id);
+			return ResponseEntity.ok(itens);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		}
 	}
 
-	@PostMapping("/{id}/fpagamento")
+	@PatchMapping("/{id}/item/{itemId}/quantidade")
 	@ResponseBody
-	@Operation(summary = "Adicionar a forma de pagamento em um pedido em expecifíco")
-	public String adicionarFormaDePagamento(@PathVariable("id") Long id, Long pId, Long fpId, String tipo) {
-		return "Forma de pagamento adicionada ao pedido do cliente.";
+	@Operation(summary = "Atualizar a quantidade de um item no pedido de um cliente em específico")
+	public ResponseEntity<String> atualizarQuantidadeItem(@PathVariable("id") Long id,
+			@PathVariable("itemId") Long itemId, @RequestParam int novaQuantidade) {
+		try {
+			String mensagem = pedidoService.atualizarQuantidadeItemNoPedido(id, itemId, novaQuantidade);
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Erro ao atualizar quantidade do item no pedido.");
+		}
 	}
-
-	@PutMapping("/{id}/fpagamento")
-	@ResponseBody
-	@Operation(summary = "Atualizar a forma de pagamento em um pedido em expecifíco")
-	public String atualizarFormaDePagamento(@PathVariable("id") Long id, Long pId, Long fpId, String tipo) {
-		return "Forma de pagamento atualizada.";
-	}
-
 }
