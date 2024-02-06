@@ -13,62 +13,61 @@ import jakarta.validation.constraints.Size;
 @Entity
 public class Usuario implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @NotBlank(message = "Login não pode ser em branco ou nulo")
-    @Size(min = 3, max = 30, message = "Login deve ter entre 3 e 30 caracteres")
-    private String login;
+	@NotBlank(message = "Login não pode ser em branco ou nulo")
+	@Size(min = 3, max = 30, message = "Login deve ter entre 3 e 30 caracteres")
+	private String login;
 
-    @NotBlank(message = "Senha não pode ser em branco ou nula")
-    @Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
-    private String senha;
+	@NotBlank(message = "Senha não pode ser em branco ou nula")
+	@Size(min = 6, max = 60, message = "Senha deve ter entre 6 e 60 caracteres")
+	private String senha;
 
-    @NotBlank(message = "permissao não pode ser em branco ou nulo")
-	@Positive(message = "Tem que ser maior que 0")
-    private int permissao;
+	@Positive(message = "Permissão deve ser maior que 0")
+	private int permissao;
 
-    public Usuario(String login, String senha, int permissao) {
-        this.login = login;
-        this.senha = senha;
-        this.permissao = permissao;
-    }
-    
-    public Usuario() {
-    }
+	public Usuario(String login, String senha, int permissao) {
+		this.login = login;
+		this.senha = senha;
+		this.permissao = permissao;
+	}
 
-    public Long getId() {
-        return id;
-    }
+	public Usuario() {
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public String getLogin() {
-        return login;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public void setLogin(String login) {
-        this.login = login;
-    }
+	public String getLogin() {
+		return login;
+	}
 
-    public String getSenha() {
-        return senha;
-    }
+	public void setLogin(String login) {
+		this.login = login;
+	}
 
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
+	public String getSenha() {
+		return senha;
+	}
 
-    public int getPermissao() {
-        return permissao;
-    }
+	public void setSenha(String senha) {
+		this.senha = senha;
+	}
 
-    public void setPermissao(int permissao) {
-        this.permissao = permissao;
-    }
+	public int getPermissao() {
+		return permissao;
+	}
+
+	public void setPermissao(int permissao) {
+		this.permissao = permissao;
+	}
 }

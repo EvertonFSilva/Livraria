@@ -9,23 +9,23 @@
   - Será permitido alteração futura?
     - _Apenas CPF (Pessoa) não pode alterar_
   - Deverá ser único?
-    - _Apenas CPF (Pessoa), cargo (Funcionario), titulo (Livro) e id (Usuario / Livro / Pedido / Aluguel, FormaPagamento)_
+    - _Apenas CPF (Pessoa), cargo (Funcionario), titulo (Livro) e id (Usuario / Livro / Pedido)_
   - Padrão (regex)-> um formato específico com CPF, CEP, CNPJ.
     - _Apenas CPF (Pessoa)_ 
 - Atributos do tipo texto:
   - Quantidade mínima e máxima de caracteres
-    - _login (Usuario)= Mínima: 10; Máxima: 30_
-    - _senha (Usuario)= Mínima: 8; Máxima: 20_
+    - _login (Usuario)= Mínima: 3; Máxima: 30_
+    - _senha (Usuario)= Mínima: 6; Máxima: 30_
     - _cpf (Pessoa)= Mínima: 11; Máxima: 14_
-	- _nome (Pessoa)= Mínima: 15; Máxima: 60_
+	- _nome (Pessoa)= Mínima: 3; Máxima: 60_
     - _email (Pessoa)= Mínima: 10; Máxima: 60_
     - _telefone (Pessoa)= Mínima: 9; Máxima: 16_
-    - _endereco (Pessoa)= Mínima: 20; Máxima: 100_
-	- _cargo (Funcionario)= Mínima: 10; Máxima: 30_
+    - _endereco (Pessoa)= Mínima: 10; Máxima: 100_
+	- _cargo (Funcionario)= Mínima: 5; Máxima: 30_
     - _titulo (Livro)= Mínima: 1; Máxima: 60_
     - _genero (Livro)= Mínima: 1; Máxima: 20_
     - _autor (Livro)= Mínima: 15; Máxima: 60_
-	- _tipo (FormaPagamento)= Mínima: 3; Máxima: 20_
+	- _formaPagamento (Item)= Mínima: 3; Máxima: 20_
 	- _tipo (Item)= Mínima: 3; Máxima: 20_	
   - Aceita valores espaço em branco ou não?
     - _Todos aceitam, exceto os mencionados como únicos_ 
@@ -46,12 +46,8 @@
     - _não_
 - Atributos de coleção:
   - Mínimo ou máximo de elementos
-    - _telefone (Pessoa)= Mínimo: 1; Máximo: 2 (exemplo: cada pessoa pode ter no mínimo 1 e no máximo 2 números de telefone)_
+    - _telefones (Pessoa)= Mínimo: 1; Máximo: 2 (exemplo: cada pessoa pode ter no mínimo 1 e no máximo 2 números de telefone)_
     - _itensPedido (Pedido)= Mínimo: 0; Máximo: 99 (exemplo: um pedido pode conter de 0 a 99 itens)_
-    - _historicoCompras (Cliente)= Mínimo: 0; Máximo: 99999999 (exemplo: um cliente pode ter um histórico de compras que varia de 0 a 99.999.999 registros)_
-    - _livrosAlugados (Aluguel)= Mínimo: 0; Máximo: 99999999 (exemplo: um aluguel pode envolver de 0 a 99.999.999 livros)_
-    - _vendas (Funcionario)= Mínimo: 0; Máximo: 99999999 (exemplo: um funcionário pode ter um histórico de vendas que varia de 0 a 99.999.999 registros)_
-    - _alugueis (Funcionario)= Mínimo: 0; Máximo: 99999999 (exemplo: um funcionário pode ter um histórico de aluguéis que varia de 0 a 99.999.999 registros)_
   - Atributos de relacionamento entre classes
     - _ _
   - Objeto A deve estar relacionamento com o objeto B
