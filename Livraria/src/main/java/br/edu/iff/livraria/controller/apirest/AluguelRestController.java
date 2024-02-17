@@ -94,10 +94,10 @@ public class AluguelRestController {
 	@PostMapping("/{id}/item")
 	@ResponseBody
 	@Operation(summary = "Adicionar um item ao aluguel em um cliente em específico")
-	public ResponseEntity<String> adicionarItem(@PathVariable Long id, @RequestParam String titulo,
+	public ResponseEntity<String> adicionarItem(@PathVariable Long id, @RequestParam Long livroId,
 			@RequestParam int quantidade) {
 		try {
-			String mensagem = aluguelService.adicionarItemAoAluguel(id, titulo, quantidade);
+			String mensagem = aluguelService.adicionarItemAoAluguel(id, livroId, quantidade);
 			return ResponseEntity.ok(mensagem);
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao adicionar item ao aluguel.");
@@ -122,19 +122,5 @@ public class AluguelRestController {
 	public ResponseEntity<List<Item>> listarItens(@PathVariable Long id) {
 		List<Item> itens = aluguelService.listarItensDoAluguel(id);
 		return ResponseEntity.ok(itens);
-	}
-
-	@PatchMapping("/{id}/item/{itemId}/quantidade")
-	@ResponseBody
-	@Operation(summary = "Atualizar a quantidade de um item no aluguel de um cliente em específico")
-	public ResponseEntity<String> atualizarQuantidadeItem(@PathVariable Long id, @PathVariable Long itemId,
-			@RequestParam int novaQuantidade) {
-		try {
-			String mensagem = aluguelService.atualizarQuantidadeItemNoAluguel(id, itemId, novaQuantidade);
-			return ResponseEntity.ok(mensagem);
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Erro ao atualizar quantidade do item no aluguel.");
-		}
 	}
 }

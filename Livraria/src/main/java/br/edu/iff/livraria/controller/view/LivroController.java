@@ -5,13 +5,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
 import br.edu.iff.livraria.entities.Livro;
 import br.edu.iff.livraria.service.LivroService;
+
 import jakarta.validation.Valid;
 
 @Controller
-@RequestMapping(path = "/livro")
+@RequestMapping("/livro")
 public class LivroController {
 
 	@Autowired
@@ -20,7 +20,7 @@ public class LivroController {
 	@GetMapping("/listar")
 	public String listarLivros(Model model) {
 		model.addAttribute("livros", livroService.listarLivros());
-		return "livro/lista";
+		return "livro/listar";
 	}
 
 	@GetMapping("/novo")
@@ -34,10 +34,10 @@ public class LivroController {
 		if (resultado.hasErrors()) {
 			model.addAttribute("mensagemErro", resultado.getAllErrors());
 			return "error";
-		} else {
-			livroService.adicionarLivro(livro);
-			return "redirect:/livro/listar";
 		}
+
+		livroService.adicionarLivro(livro);
+		return "redirect:/livro/listar";
 	}
 
 	@GetMapping("/detalhes/{id}")
@@ -59,21 +59,16 @@ public class LivroController {
 			Model model) {
 		if (resultado.hasErrors()) {
 			return "error";
-		} else {
-			String titulo = livro.getTitulo();
-			String genero = livro.getGenero();
-			String autor = livro.getAutor();
-			int qtdPaginas = livro.getQtdPaginas();
-			float precoVenda = livro.getPrecoVenda();
-			float precoAluguel = livro.getPrecoAluguel();
-			if (resultado.hasErrors()) {
-				model.addAttribute("mensagemErro", resultado.getAllErrors());
-				return "error";
-			} else {
-				livroService.atualizarLivro(id, titulo, autor, genero, qtdPaginas, precoVenda, precoAluguel);
-				return "redirect:/livro/listar";
-			}
 		}
+
+		String titulo = livro.getTitulo();
+		String genero = livro.getGenero();
+		String autor = livro.getAutor();
+		int qtdPaginas = livro.getQtdPaginas();
+		float preco = livro.getPreco();
+
+		livroService.atualizarLivro(id, titulo, autor, genero, qtdPaginas, preco);
+		return "redirect:/livro/listar";
 	}
 
 	@GetMapping("/excluir/{id}")

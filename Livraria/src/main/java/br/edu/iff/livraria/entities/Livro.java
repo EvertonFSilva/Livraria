@@ -14,7 +14,7 @@ import jakarta.validation.constraints.Size;
 @Entity
 public class Livro implements Serializable {
 
-	protected static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,24 +36,22 @@ public class Livro implements Serializable {
 	@Positive(message = "Tem que ser maior que 0")
 	@Column(name = "qtd_paginas")
 	private int qtdPaginas;
-	
+
 	@Positive(message = "Tem que ser maior que 0")
-    private float precoVenda;
+	private float preco;
 
-    @Positive(message = "Tem que ser maior que 0")
-    private float precoAluguel;
-
-	public Livro(String titulo, String autor, String genero, int qtdPaginas, float precoVenda, float precoAluguel) {
+	public Livro(String titulo, String autor, String genero, int qtdPaginas, float preco) {
 		this.titulo = titulo;
 		this.autor = autor;
 		this.genero = genero;
 		this.qtdPaginas = qtdPaginas;
+		this.preco = preco;
 	}
 
 	public Livro() {
-		
+
 	}
-	
+
 	public Long getId() {
 		return id;
 	}
@@ -93,20 +91,12 @@ public class Livro implements Serializable {
 	public void setQtdPaginas(int qtdPaginas) {
 		this.qtdPaginas = qtdPaginas;
 	}
-	
-    public float getPrecoVenda() {
-		return precoVenda;
+
+	public float getPreco() {
+		return preco;
 	}
 
-	public void setPrecoVenda(float precoVenda) {
-		this.precoVenda = precoVenda;
-	}
-
-	public float getPrecoAluguel() {
-		return precoAluguel;
-	}
-
-	public void setPrecoAluguel(float precoAluguel) {
-		this.precoAluguel = precoAluguel;
+	public void setPreco(float preco) {
+		this.preco = preco;
 	}
 }

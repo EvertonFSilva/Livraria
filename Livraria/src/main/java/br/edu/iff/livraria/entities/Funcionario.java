@@ -9,37 +9,39 @@ import jakarta.validation.constraints.Size;
 @Entity
 public class Funcionario extends Pessoa {
 
-    @NotBlank(message = "Não pode ser em branco ou nulo")
-    @Size(min = 4, max = 30, message = "Tem que ter entre 4 e 30 caractéres")
-    @Column(unique = true, length = 30)
-    private String cargo;
+	private static final long serialVersionUID = 1L;
 
-    @Positive(message = "Tem que ser maior que 0")
-    private float salario;
+	@NotBlank(message = "Não pode ser em branco ou nulo")
+	@Size(min = 4, max = 30, message = "Tem que ter entre 4 e 30 caractéres")
+	@Column(unique = true, length = 30)
+	private String cargo;
 
-    public Funcionario(String cpf, String nome, String email, String telefone, String endereco,
-            String cargo, float salario) {
-        super(cpf, nome, email, telefone, endereco);
-        this.cargo = cargo;
-        this.salario = salario;
-    }
+	@Positive(message = "Tem que ser maior que 0")
+	private float salario;
 
-    public Funcionario() {
-    }
+	public Funcionario(String cpf, String nome, String email, String telefone, String endereco, String cargo,
+			float salario) {
+		super(cpf, nome, email, telefone, endereco);
+		this.cargo = cargo;
+		this.salario = salario;
+	}
 
-    public String getCargo() {
-        return cargo;
-    }
+	public Funcionario() {
+	}
 
-    public void setCargo(String cargo) {
-        this.cargo = cargo;
-    }
+	public String getCargo() {
+		return cargo;
+	}
 
-    public float getSalario() {
-        return salario;
-    }
+	public void setCargo(String cargo) {
+		this.cargo = cargo;
+	}
 
-    public void setSalario(float salario) {
-        this.salario = salario;
-    }
+	public float getSalario() {
+		return salario;
+	}
+
+	public void setSalario(float salario) {
+		this.salario = salario;
+	}
 }

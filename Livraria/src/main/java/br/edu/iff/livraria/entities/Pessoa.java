@@ -21,7 +21,7 @@ import jakarta.validation.constraints.Size;
 @MappedSuperclass
 public class Pessoa implements Serializable {
 
-	protected static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,7 +44,7 @@ public class Pessoa implements Serializable {
 	@ElementCollection
 	@Size(min = 1, max = 2, message = "Tem que ter entre 1 e 2 telefones")
 	@Column(length = 11)
-	private List<@Pattern(regexp = "[0-9]{9,11}", message = "Deve seguir o padrão do Telefone") String> telefones = new ArrayList<>();
+	private List<@Pattern(regexp = "[0-9]{9,11}", message = "Deve seguir o padrão do Telefone") String> telefones;
 
 	@Size(min = 10, max = 100, message = "Tem que ter entre 20 e 100 caractéres")
 	@Column(length = 100)
@@ -58,6 +58,7 @@ public class Pessoa implements Serializable {
 		this.cpf = cpf;
 		this.nome = nome;
 		this.email = email;
+		this.telefones = new ArrayList<>();
 		this.telefones.add(telefone);
 		this.endereco = endereco;
 	}
@@ -120,7 +121,7 @@ public class Pessoa implements Serializable {
 	public void setEndereco(String endereco) {
 		this.endereco = endereco;
 	}
-	
+
 	public Usuario getUsuario() {
 		return usuario;
 	}
