@@ -13,53 +13,59 @@ public class LivroService {
 	@Autowired
 	private LivroRepository livroRepository;
 
-	public String adicionarLivro(String titulo, String autor, String genero, int qtdPaginas, float precoVenda,
-			float precoAluguel) {
-		Livro livroExistente = livroRepository.buscarPorTitulo(titulo);
-
-		if (livroExistente == null) {
-			Livro novoLivro = new Livro(titulo, autor, genero, qtdPaginas, precoVenda, precoAluguel);
-			livroRepository.save(novoLivro);
-			return "Livro adicionado com sucesso.";
-		} else {
-			return "Livro já cadastrado com esse título.";
-		}
-	}
-
 	public Livro buscarPorId(Long id) {
 		return livroRepository.buscarPorId(id);
 	}
 
-	public Livro buscarPorTitulo(String titulo) {
-		return livroRepository.buscarPorTitulo(titulo);
-	}
-
-	public String atualizarLivro(Long id, String titulo, String autor, String genero, int qtdPaginas, float precoVenda,
-			float precoAluguel) {
-		Livro livroExistente = buscarPorId(id);
-
+	public String adicionarLivro(String titulo, String autor, String genero, int qtdPaginas, float preco) {
+		Livro livroExistente = buscarPorTitulo(titulo);
 		if (livroExistente != null) {
-			livroExistente.setTitulo(titulo);
-			livroExistente.setAutor(autor);
-			livroExistente.setGenero(genero);
-			livroExistente.setQtdPaginas(qtdPaginas);
-			livroExistente.setPrecoVenda(precoVenda);
-			livroExistente.setPrecoAluguel(precoAluguel);
-			livroRepository.save(livroExistente);
-			return "Livro atualizado com sucesso.";
+			return "Livro já cadastrado com esse título.";
 		}
 
+		Livro novoLivro = new Livro(titulo, autor, genero, qtdPaginas, preco);
+		livroRepository.saveAndFlush(novoLivro);
+		return "Livro adicionado com sucesso. Id: " + novoLivro.getId();
+	}
+
+	public Livro buscarPorTitulo(String titulo) {
+		Livro livroExistente = livroRepository.buscarPorTitulo(titulo);
+		if (livroExistente != null) {
+			return livroExistente;
+		}
+		return null;
+	}
+
+	public String atualizarLivro(Long id, String novoTitulo, String autor, String genero, int qtdPaginas, float preco) {
+		Livro livroExistente = buscarPorId(id);
+		if (livroExistente != null) {
+			if (novoTitulo != null && !novoTitulo.isEmpty()) {
+				livroExistente.setTitulo(novoTitulo);
+			}
+			if (autor != null) {
+				livroExistente.setAutor(autor);
+			}
+			if (genero != null) {
+				livroExistente.setGenero(genero);
+			}
+			if (qtdPaginas > 0) {
+				livroExistente.setQtdPaginas(qtdPaginas);
+			}
+			if (preco > 0) {
+				livroExistente.setPreco(preco);
+			}
+			livroRepository.saveAndFlush(livroExistente);
+			return "Livro atualizado com sucesso.";
+		}
 		return "Livro não encontrado.";
 	}
 
 	public String deletarLivro(Long id) {
 		Livro livroExistente = buscarPorId(id);
-
 		if (livroExistente != null) {
 			livroRepository.delete(livroExistente);
 			return "Livro deletado com sucesso.";
 		}
-
 		return "Livro não encontrado.";
 	}
 
@@ -68,11 +74,12 @@ public class LivroService {
 	}
 
 	public String adicionarLivro(Livro livro) {
-		if (livroRepository.buscarPorTitulo(livro.getTitulo()) != null) {
+		Livro livroExistente = buscarPorTitulo(livro.getTitulo());
+		if (livroExistente != null) {
 			return "Livro já cadastrado.";
-		} else {
-			Livro novoLivro = livroRepository.save(livro);
-			return "Registrado no id " + novoLivro.getId();
 		}
+
+		Livro novoLivro = livroRepository.saveAndFlush(livro);
+		return "Registrado no Id " + novoLivro.getId();
 	}
 }

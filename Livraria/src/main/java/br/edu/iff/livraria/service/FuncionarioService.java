@@ -17,58 +17,69 @@ public class FuncionarioService {
 	@Autowired
 	private FuncionarioRepository funcionarioRepository;
 
+	public Funcionario buscarPorId(Long id) {
+		return funcionarioRepository.buscarPorId(id);
+	}
+
 	public String adicionarFuncionario(String login, String senha, String cpf, String nome, String email,
 			String telefone, String endereco, String cargo, float salario) {
-		Funcionario novoFuncionario = new Funcionario(cpf, nome, email, telefone, endereco, cargo, salario);
-
-		Funcionario funcionarioExistente = funcionarioRepository.buscarPorCPF(novoFuncionario.getCpf());
-
-		if (funcionarioExistente == null) {
-			Usuario novoUsuario = usuarioService.adicionarUsuario(login, senha, 1);
-
-			if (novoUsuario != null) {
-				novoFuncionario.setUsuario(novoUsuario);
-				funcionarioRepository.save(novoFuncionario);
-				return "Funcionário adicionado com sucesso.";
-			} else {
-				return "Erro ao adicionar usuário.";
-			}
-		} else {
+		Funcionario funcionarioExistente = funcionarioRepository.buscarPorCPF(cpf);
+		if (funcionarioExistente != null) {
 			return "Funcionário já cadastrado.";
 		}
+
+		Usuario novoUsuario = usuarioService.adicionarUsuario(login, senha, 1);
+		if (novoUsuario == null) {
+			return "Erro ao adicionar usuário.";
+		}
+
+		Funcionario novoFuncionario = new Funcionario(cpf, nome, email, telefone, endereco, cargo, salario);
+		novoFuncionario.setUsuario(novoUsuario);
+		funcionarioRepository.saveAndFlush(novoFuncionario);
+		return "Funcionário adicionado com sucesso. Id: " + novoFuncionario.getId();
 	}
 
 	public String atualizarFuncionario(Long id, String cpf, String nome, String email, String endereco, String cargo,
 			float salario) {
-		Funcionario funcionarioExistente = buscarFuncionario(id);
-
-		if (funcionarioExistente != null) {
-			funcionarioExistente.setCpf(cpf);
-			funcionarioExistente.setNome(nome);
-			funcionarioExistente.setEmail(email);
-			funcionarioExistente.setEndereco(endereco);
-			funcionarioExistente.setCargo(cargo);
-			funcionarioExistente.setSalario(salario);
-			funcionarioRepository.save(funcionarioExistente);
-			return "Funcionário atualizado com sucesso.";
-		} else {
+		Funcionario funcionarioExistente = buscarPorId(id);
+		if (funcionarioExistente == null) {
 			return "Funcionário não encontrado.";
 		}
+
+		if (!funcionarioExistente.getCpf().equals(cpf)) {
+			return "Esse Id não pertence a esse funcionário.";
+		}
+
+		if (!cpf.isEmpty()) {
+			funcionarioExistente.setCpf(cpf);
+		}
+		if (!nome.isEmpty()) {
+			funcionarioExistente.setNome(nome);
+		}
+		if (!email.isEmpty()) {
+			funcionarioExistente.setEmail(email);
+		}
+		if (!endereco.isEmpty()) {
+			funcionarioExistente.setEndereco(endereco);
+		}
+		if (!cargo.isEmpty()) {
+			funcionarioExistente.setCargo(cargo);
+		}
+		if (salario > 0) {
+			funcionarioExistente.setSalario(salario);
+		}
+		funcionarioRepository.saveAndFlush(funcionarioExistente);
+		return "Funcionário atualizado com sucesso.";
 	}
 
 	public String deletarFuncionario(Long id) {
-		Funcionario funcionarioExistente = buscarFuncionario(id);
-
-		if (funcionarioExistente != null) {
-			funcionarioRepository.delete(funcionarioExistente);
-			return "Funcionário deletado com sucesso.";
-		} else {
+		Funcionario funcionarioExistente = buscarPorId(id);
+		if (funcionarioExistente == null) {
 			return "Funcionário não encontrado.";
 		}
-	}
 
-	public Funcionario buscarFuncionario(Long id) {
-		return funcionarioRepository.buscarPorId(id);
+		funcionarioRepository.delete(funcionarioExistente);
+		return "Funcionário deletado com sucesso.";
 	}
 
 	public List<Funcionario> listarFuncionarios() {
@@ -76,61 +87,49 @@ public class FuncionarioService {
 	}
 
 	public String adicionarTelefone(Long id, String telefone) {
-		Funcionario funcionarioExistente = buscarFuncionario(id);
-
-		if (funcionarioExistente != null) {
-			if (telefone != null && !telefone.trim().isEmpty()) {
-				if (funcionarioExistente.getTelefones().size() < 2) {
-					if (!funcionarioRepository.existeTelefoneNoCPF(funcionarioExistente.getCpf(), telefone)) {
-						funcionarioExistente.adicionarTelefone(telefone);
-						funcionarioRepository.save(funcionarioExistente);
-						return "Telefone adicionado com sucesso.";
-					} else {
-						return "Esse telefone já está cadastrado.";
-					}
-				} else {
-					return "Funcionário já possui o número máximo de telefones permitidos.";
-				}
-			} else {
-				return "Telefone inválido.";
-			}
-		} else {
+		Funcionario funcionarioExistente = buscarPorId(id);
+		if (funcionarioExistente == null) {
 			return "Funcionário não encontrado.";
 		}
+
+		if (telefone == null || telefone.trim().isEmpty()) {
+			return "Telefone inválido.";
+		}
+
+		if (funcionarioExistente.getTelefones().size() >= 2) {
+			return "Funcionário já possui o número máximo de telefones permitidos.";
+		}
+
+		if (funcionarioRepository.existeTelefoneNoCPF(funcionarioExistente.getCpf(), telefone)) {
+			return "Esse telefone já está cadastrado.";
+		}
+
+		funcionarioExistente.adicionarTelefone(telefone);
+		funcionarioRepository.saveAndFlush(funcionarioExistente);
+		return "Telefone adicionado com sucesso.";
 	}
 
 	public String deletarTelefone(Long id, String telefone) {
-		Funcionario funcionarioExistente = buscarFuncionario(id);
-
-		if (funcionarioExistente != null) {
-			if (telefone != null && !telefone.trim().isEmpty()) {
-				if (funcionarioRepository.existeTelefoneNoCPF(funcionarioExistente.getCpf(), telefone)) {
-					funcionarioExistente.deletarTelefone(telefone);
-					funcionarioRepository.save(funcionarioExistente);
-					return "Telefone deletado com sucesso.";
-				} else {
-					return "Telefone não encontrado.";
-				}
-			} else {
-				return "Telefone inválido.";
-			}
-		} else {
+		Funcionario funcionarioExistente = buscarPorId(id);
+		if (funcionarioExistente == null) {
 			return "Funcionário não encontrado.";
 		}
+
+		if (telefone == null || telefone.trim().isEmpty()) {
+			return "Telefone inválido.";
+		}
+
+		if (!funcionarioRepository.existeTelefoneNoCPF(funcionarioExistente.getCpf(), telefone)) {
+			return "Telefone não encontrado.";
+		}
+
+		funcionarioExistente.deletarTelefone(telefone);
+		funcionarioRepository.saveAndFlush(funcionarioExistente);
+		return "Telefone deletado com sucesso.";
 	}
 
-	public String listarTelefones(Long id) {
-		Funcionario funcionarioExistente = buscarFuncionario(id);
-
-		if (funcionarioExistente != null) {
-			List<String> telefones = funcionarioExistente.getTelefones();
-			if (!telefones.isEmpty()) {
-				return String.join(", ", telefones);
-			} else {
-				return "Funcionário não possui telefones cadastrados.";
-			}
-		} else {
-			return "Funcionário não encontrado.";
-		}
+	public List<String> listarTelefones(Long id) {
+		Funcionario funcionario = buscarPorId(id);
+		return (funcionario != null) ? funcionario.getTelefones() : null;
 	}
 }

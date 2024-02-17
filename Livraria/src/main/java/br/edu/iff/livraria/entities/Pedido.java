@@ -1,9 +1,12 @@
 package br.edu.iff.livraria.entities;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -22,95 +25,97 @@ import jakarta.validation.constraints.Size;
 @Entity
 public class Pedido implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	private static final long serialVersionUID = 1L;
 
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
-    private List<Item> itens = new ArrayList<>();
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    private float valorTotal;
+	@OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
+	@JsonManagedReference
+	private List<Item> itens;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "data_pedido")
-    private Date dataPedido;
+	private float valorTotal;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "data_entrega")
-    private Date dataEntrega;
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "data_pedido")
+	private LocalDateTime dataPedido;
 
-    @NotBlank(message = "Tipo não pode ser em branco ou nulo")
-    @Size(min = 3, max = 30, message = "Tipo deve ter entre 3 e 30 caracteres")
-    private String formaPagamento;
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "data_entrega")
+	private LocalDateTime dataEntrega;
 
-    @ManyToOne
-    @JoinColumn(name = "cliente_id")
-    private Cliente cliente;
+	@NotBlank(message = "Tipo não pode ser em branco ou nulo")
+	@Size(min = 3, max = 30, message = "Tipo deve ter entre 3 e 30 caracteres")
+	private String formaPagamento;
 
-    private boolean finalizado;
-	
-    public Pedido(Cliente cliente) {
-        this.cliente = cliente;
-    	this.finalizado = false;
-        this.valorTotal = 0;
-        this.dataPedido = null;
-        this.dataEntrega = null;
-        this.formaPagamento = "";
-    }
+	@ManyToOne
+	@JoinColumn(name = "cliente_id")
+	@JsonIgnore
+	private Cliente cliente;
 
-    public Pedido() {
-    }
+	private boolean finalizado;
 
-    public Long getId() {
-        return id;
-    }
+	public Pedido(Cliente cliente, String formaPagamento) {
+		this.cliente = cliente;
+		this.finalizado = false;
+		this.valorTotal = 0;
+		this.dataPedido = null;
+		this.dataEntrega = null;
+		this.itens = new ArrayList<>();
+		this.formaPagamento = formaPagamento;
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public Pedido() {
+	}
 
-    public List<Item> getItens() {
-        return itens;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public Item getItemById(Long itemId) {
-        for (Item item : itens) {
-            if (item.getId().equals(itemId)) {
-                return item;
-            }
-        }
-        return null;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public void adicionarItem(Item item) {
-        this.itens.add(item);
-    }
+	public List<Item> getItens() {
+		return itens;
+	}
 
-    public void removerItem(Item item) {
-        this.itens.remove(item);
-    }
+	public void setItens(List<Item> itens) {
+		this.itens = itens;
+	}
 
-    public float getValorTotal() {
-        return valorTotal;
-    }
+	public void adicionarItem(Item item) {
+		this.itens.add(item);
+		item.setPedido(this);
+	}
 
-    public void setValorTotal(float valorTotal) {
-        this.valorTotal = valorTotal;
-    }
+	public void removerItem(Item item) {
+		this.itens.remove(item);
+		item.setPedido(null);
+	}
 
-    public Date getDataPedido() {
-        return dataPedido;
-    }
+	public float getValorTotal() {
+		return valorTotal;
+	}
 
-    public void setDataPedido(Date dataPedido) {
-        this.dataPedido = dataPedido;
-    }
+	public void setValorTotal(float valorTotal) {
+		this.valorTotal = valorTotal;
+	}
 
-    public Date getDataEntrega() {
+	public LocalDateTime getDataPedido() {
+		return dataPedido;
+	}
+
+	public void setDataPedido(LocalDateTime dataPedido) {
+		this.dataPedido = dataPedido;
+	}
+
+	public LocalDateTime getDataEntrega() {
 		return dataEntrega;
 	}
 
-	public void setDataEntrega(Date dataEntrega) {
+	public void setDataEntrega(LocalDateTime dataEntrega) {
 		this.dataEntrega = dataEntrega;
 	}
 
@@ -121,21 +126,22 @@ public class Pedido implements Serializable {
 	public void setFormaPagamento(String formaPagamento) {
 		this.formaPagamento = formaPagamento;
 	}
-	
-    public Cliente getCliente() {
-        return cliente;
-    }
 
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
-    }
-	
-	public boolean getFinalizado() {
+	public Cliente getCliente() {
+		return cliente;
+	}
+
+	public void setCliente(Cliente cliente) {
+		this.cliente = cliente;
+	}
+
+	public boolean isFinalizado() {
 		return finalizado;
 	}
-		
+
 	public void finalizar() {
 		this.finalizado = true;
-		this.dataPedido = new Date();
+		this.dataPedido = LocalDateTime.now();
+		this.dataEntrega = LocalDateTime.now();
 	}
 }
