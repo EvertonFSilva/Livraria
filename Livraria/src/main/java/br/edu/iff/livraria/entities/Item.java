@@ -2,85 +2,106 @@ package br.edu.iff.livraria.entities;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.validation.constraints.Positive;
 
 @Entity
 public class Item implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@ManyToOne
-	private Livro livro;
+    @ManyToOne
+    private Livro livro;
 
-	private int quantidade;
+    private int quantidade;
 
-	@ManyToOne
-	@JoinColumn(name = "pedido_id")
-	@JsonBackReference
-	private Pedido pedido;
+    private int tipo;
 
-	@ManyToOne
-	@JoinColumn(name = "aluguel_id")
-    @JsonManagedReference
-	private Aluguel aluguel;
+    @Positive(message = "Tem que ser maior que 0")
+    @Column(name = "preco_unitario")
+    private float precoUnitario;
 
-	public Item(Livro livro, int quantidade) {
-		this.livro = livro;
-		this.quantidade = quantidade;
-	}
+    @ManyToOne
+    @JoinColumn(name = "pedido_id")
+    private Pedido pedido;
 
-	public Item() {
-	}
+    @OneToOne(mappedBy = "item")
+    private Aluguel aluguel;
+    
+    public Item(Livro livro, int quantidade, int tipo, float precoUnitario) {
+        this.livro = livro;
+        this.quantidade = quantidade;
+        this.tipo = tipo;
+        this.precoUnitario = precoUnitario;
+    }
 
-	public Long getId() {
-		return id;
-	}
+    public Item() {
+    }
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public Livro getLivro() {
-		return livro;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public void setLivro(Livro livro) {
-		this.livro = livro;
-	}
+    public Livro getLivro() {
+        return livro;
+    }
 
-	public int getQuantidade() {
-		return quantidade;
-	}
+    public void setLivro(Livro livro) {
+        this.livro = livro;
+    }
 
-	public void setQuantidade(int quantidade) {
-		this.quantidade = quantidade;
-	}
+    public int getQuantidade() {
+        return quantidade;
+    }
 
-	public Pedido getPedido() {
-		return pedido;
-	}
+    public void setQuantidade(int quantidade) {
+        this.quantidade = quantidade;
+    }
 
-	public void setPedido(Pedido pedido) {
-		this.pedido = pedido;
-	}
+    public int getTipo() {
+        return tipo;
+    }
 
-	public Aluguel getAluguel() {
-		return aluguel;
-	}
+    public void setTipo(int tipo) {
+        this.tipo = tipo;
+    }
 
-	public void setAluguel(Aluguel aluguel) {
-		this.aluguel = aluguel;
-	}
+    public float getPrecoUnitario() {
+        return precoUnitario;
+    }
+
+    public void setPrecoUnitario(float precoUnitario) {
+        this.precoUnitario = precoUnitario;
+    }
+
+    public Pedido getPedido() {
+        return pedido;
+    }
+
+    public void setPedido(Pedido pedido) {
+        this.pedido = pedido;
+    }
+
+    public Aluguel getAluguel() {
+        return aluguel;
+    }
+
+    public void setAluguel(Aluguel aluguel) {
+        this.aluguel = aluguel;
+    }
 }

@@ -13,19 +13,12 @@ public class UsuarioService {
 	@Autowired
 	private UsuarioRepository usuarioRepository;
 
-	public Usuario buscarPorId(Long id) {
-		return usuarioRepository.buscarPorId(id);
-	}
-	
-	public Usuario buscarPorLogin(String login) {
-		return usuarioRepository.buscarPorLogin(login);
-	}
-
 	public Usuario adicionarUsuario(String login, String senha, int permissao) {
-		Usuario usuarioExistente = usuarioRepository.buscarPorLogin(login);
-		if (usuarioExistente == null) {
+		Usuario usuario = usuarioRepository.buscarPorLogin(login);
+
+		if (usuario == null) {
 			Usuario novoUsuario = new Usuario(login, senha, permissao);
-			usuarioRepository.saveAndFlush(novoUsuario);
+			usuarioRepository.save(novoUsuario);
 			return novoUsuario;
 		}
 		return null;
@@ -33,43 +26,59 @@ public class UsuarioService {
 
 	public String atualizarUsuario(Long id, String login, String senha, int permissao) {
 		Usuario usuarioExistente = buscarPorId(id);
-		if (usuarioExistente == null) {
-			return "Usuário não cadastrado.";
+
+		if (usuarioExistente != null) {
+			Usuario loginExistente = usuarioRepository.buscarPorLogin(login);
+
+			if (loginExistente == null || loginExistente.getId().equals(id)) {
+				boolean usuarioAtualizado = atualizarUsuario(usuarioExistente.getLogin(), login, senha, permissao);
+				return usuarioAtualizado ? "Usuário atualizado." : "Usuário não atualizado.";
+			}
 		}
 
-		Usuario loginExistente = usuarioRepository.buscarPorLogin(login);
-		if (loginExistente != null && !loginExistente.getId().equals(id)) {
-			return "Id não é igual ou o login não existe.";
-		}
-
-		boolean usuarioAtualizado = atualizarUsuario(usuarioExistente.getLogin(), login, senha, permissao);
-		return usuarioAtualizado ? "Usuário atualizado." : "Usuário não atualizado.";
+		return "Usuário não cadastrado.";
 	}
 
 	public String deletarUsuario(Long id) {
-		Usuario usuarioExistente = buscarPorId(id);
+		Usuario usuarioExistente = usuarioRepository.buscarPorId(id);
+
 		if (usuarioExistente != null) {
 			usuarioRepository.delete(usuarioExistente);
 			return "Usuário deletado.";
+		} else {
+			return "Usuário não deletado.";
 		}
-		return "Usuário não deletado.";
+	}
+
+	public Usuario buscarUsuario(Long id) {
+		return buscarPorId(id);
 	}
 
 	public List<Usuario> listarUsuarios() {
 		return usuarioRepository.listarUsuarios();
 	}
 
+	private Usuario buscarPorId(Long id) {
+		return usuarioRepository.buscarPorId(id);
+	}
+
 	private boolean atualizarUsuario(String loginAtual, String novoLogin, String senha, int permissao) {
 		Usuario usuarioExistente = buscarPorLogin(loginAtual);
+
 		if (usuarioExistente != null) {
 			if (!loginAtual.equals(novoLogin)) {
 				usuarioExistente.setLogin(novoLogin);
 			}
 			usuarioExistente.setSenha(senha);
 			usuarioExistente.setPermissao(permissao);
-			usuarioRepository.saveAndFlush(usuarioExistente);
+			usuarioRepository.save(usuarioExistente);
 			return true;
 		}
+
 		return false;
+	}
+
+	private Usuario buscarPorLogin(String login) {
+		return usuarioRepository.buscarPorLogin(login);
 	}
 }

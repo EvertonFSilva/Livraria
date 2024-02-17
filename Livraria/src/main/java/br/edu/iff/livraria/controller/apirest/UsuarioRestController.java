@@ -3,76 +3,53 @@ package br.edu.iff.livraria.controller.apirest;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import br.edu.iff.livraria.entities.Usuario;
 import br.edu.iff.livraria.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
-@RequestMapping("/api/v1/usuario")
+@RequestMapping(path = "/api/v1/usuario")
 public class UsuarioRestController {
 
 	@Autowired
 	private UsuarioService usuarioService;
 
-	@PostMapping
+	@PostMapping("")
 	@ResponseBody
 	@Operation(summary = "Adicionar um usuário específico")
-	public ResponseEntity<String> adicionarUsuario(@RequestParam String login, @RequestParam String senha,
+	public String adicionarUsuario(@RequestParam String login, @RequestParam String senha,
 			@RequestParam int permissao) {
-		try {
-			Usuario resultado = usuarioService.adicionarUsuario(login, senha, permissao);
-			return ResponseEntity.ok(
-					resultado != null ? "Usuário cadastrado com sucesso." : "Usuário já cadastrado com esse login.");
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao adicionar usuário.");
-		}
+		Usuario resultado = usuarioService.adicionarUsuario(login, senha, permissao);
+		return resultado != null ? "Usuário cadastrado com sucesso." : "Erro: Usuário já cadastrado com esse login.";
 	}
 
 	@PutMapping("/{id}")
 	@ResponseBody
 	@Operation(summary = "Atualizar um usuário específico")
-	public ResponseEntity<String> atualizarUsuario(@PathVariable("id") Long id, @RequestParam String login,
-			@RequestParam String senha, @RequestParam int permissao) {
-		try {
-			String mensagem = usuarioService.atualizarUsuario(id, login, senha, permissao);
-			return ResponseEntity.ok(mensagem);
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao atualizar usuário.");
-		}
+	public String atualizarUsuario(@PathVariable("id") Long id, @RequestParam String login, @RequestParam String senha,
+			@RequestParam int permissao) {
+		return usuarioService.atualizarUsuario(id, login, senha, permissao);
 	}
 
 	@DeleteMapping("/{id}")
 	@ResponseBody
 	@Operation(summary = "Deletar um usuário específico")
-	public ResponseEntity<String> deletarUsuario(@PathVariable("id") Long id) {
-		try {
-			String mensagem = usuarioService.deletarUsuario(id);
-			return ResponseEntity.ok(mensagem);
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao deletar usuário.");
-		}
+	public String deletarUsuario(@PathVariable("id") Long id) {
+		return usuarioService.deletarUsuario(id);
 	}
 
 	@GetMapping("/{id}")
 	@ResponseBody
 	@Operation(summary = "Retornar um usuário específico")
-	public ResponseEntity<Usuario> buscarUsuario(@PathVariable("id") Long id) {
-		try {
-			Usuario usuario = usuarioService.buscarPorId(id);
-			return ResponseEntity.ok(usuario);
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-		}
+	public Usuario buscarUsuario(@PathVariable("id") Long id) {
+		return usuarioService.buscarUsuario(id);
 	}
 
-	@GetMapping
+	@GetMapping("")
 	@ResponseBody
 	@Operation(summary = "Listar todos os usuários")
-	public ResponseEntity<List<Usuario>> listarUsuarios() {
-		List<Usuario> usuarios = usuarioService.listarUsuarios();
-		return ResponseEntity.ok(usuarios);
+	public List<Usuario> listarUsuarios() {
+		return usuarioService.listarUsuarios();
 	}
 }

@@ -11,12 +11,15 @@ import br.edu.iff.livraria.entities.Pedido;
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
-	@Query(value = "SELECT * FROM Pedido WHERE id = ?1", nativeQuery = true)
-	Pedido buscarPorId(Long id);
+    @Query(value = "SELECT * FROM Pedido WHERE id = ?1", nativeQuery = true)
+    Pedido buscarPorId(Long id);
+    
+	@Query(value="SELECT id_cliente FROM Pedido WHERE id = ?1", nativeQuery = true)
+    Long buscarPedidoPeloClienteId(Long clienteId);
 
-	@Query(value = "SELECT * FROM Pedido WHERE cliente_id = ?1 AND finalizado = false", nativeQuery = true)
-	List<Pedido> buscarPedidosEmProgresso(Long clienteId);
+	@Query(value="SELECT * FROM Pedido WHERE id = ?1 AND finalizado = false", nativeQuery = true)
+	List<Pedido> buscarPedidosEmProgresso(Long id);
 
-	@Query(value = "SELECT * FROM Pedido", nativeQuery = true)
-	List<Pedido> listarPedidos();
+    @Query(value = "SELECT * FROM Pedido", nativeQuery = true)
+    List<Pedido> listarPedidos();
 }

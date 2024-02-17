@@ -1,225 +1,62 @@
 package br.edu.iff.livraria.service;
 
 import br.edu.iff.livraria.entities.Aluguel;
-import br.edu.iff.livraria.entities.Cliente;
 import br.edu.iff.livraria.entities.Item;
-import br.edu.iff.livraria.entities.Livro;
 import br.edu.iff.livraria.repository.AluguelRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @Service
 public class AluguelService {
 
-	@Autowired
-	private AluguelRepository aluguelRepository;
+    @Autowired
+    private AluguelRepository aluguelRepository;
 
-	@Autowired
-	private ClienteService clienteService;
+    public Aluguel buscarPorId(Long id) {
+        return aluguelRepository.findById(id).orElse(null);
+    }
 
-	@Autowired
-	private ItemService itemService;
+    public List<Aluguel> listarAlugueis() {
+        return aluguelRepository.listarAlugueis();
+    }
 
-	@Autowired
-	private LivroService livroService;
+    public List<Aluguel> listarAlugueisPorCliente(Long clienteId) {
+        return aluguelRepository.listarAlugueisPorCliente(clienteId);
+    }
 
-	public Aluguel buscarPorId(Long id) {
-		return aluguelRepository.buscarPorId(id);
-	}
+    public boolean adicionarAluguel(Item item) {
+        if (item.getAluguel() == null) {
+            Date dataInicio = new Date();
+            Date dataFim = new Date(dataInicio.getTime() + (7 * 24 * 60 * 60 * 1000));
+            Aluguel novoAluguel = new Aluguel(item, dataInicio, dataFim);
+            aluguelRepository.save(novoAluguel);
+            item.setAluguel(novoAluguel);
+            return true;
+        }
+        return false;
+    }
 
-	public String adicionarAluguel(Long clienteId, String formaPagamento) {
-		Cliente clienteExistente = clienteService.buscarPorId(clienteId);
+    public boolean atualizarAluguel(Aluguel aluguel, Date dataInicio, Date dataFim) {
+        if (aluguel != null) {
+            aluguel.setDataInicio(dataInicio);
+            aluguel.setDataFim(dataFim);
+            aluguelRepository.save(aluguel);
+            return true;
+        }
+        return false;
+    }
 
-		if (clienteExistente == null) {
-			return "Cliente não encontrado.";
-		}
+    public boolean deletarAluguel(Long id) {
+        Aluguel aluguelExistente = buscarPorId(id);
 
-		List<Aluguel> alugueisEmProgresso = aluguelRepository.buscarAlugueisEmProgresso(clienteId);
-		if (!alugueisEmProgresso.isEmpty()) {
-			return "Cliente já tem um aluguel em progresso.";
-		}
-
-		Aluguel novoAluguel = new Aluguel(clienteExistente, formaPagamento);
-		clienteExistente.adicionarAluguel(novoAluguel);
-		aluguelRepository.saveAndFlush(novoAluguel);
-		return "Aluguel adicionado. Id: " + novoAluguel.getId();
-	}
-
-	public String atualizarAluguel(Long aluguelId, Long clienteId, float valorTotal, LocalDateTime dataInicio,
-			LocalDateTime dataFim, LocalDateTime dataEntrega, String formaPagamento) {
-		Cliente clienteExistente = clienteService.buscarPorId(clienteId);
-
-		if (clienteExistente == null) {
-			return "Cliente não encontrado.";
-		}
-
-		Aluguel aluguelExistente = buscarPorId(aluguelId);
-
-		if (aluguelExistente == null || !aluguelExistente.getCliente().getId().equals(clienteId)) {
-			return "Aluguel não encontrado ou não pertence a esse Cliente.";
-		}
-
-		if (aluguelExistente.isFinalizado()) {
-			return "Aluguel já finalizado.";
-		}
-
-		aluguelExistente.setValorTotal(valorTotal);
-		aluguelExistente.setDataInicio(dataInicio);
-		aluguelExistente.setDataFim(dataFim);
-		aluguelExistente.setDataEntrega(dataEntrega);
-		aluguelExistente.setFormaPagamento(formaPagamento);
-		aluguelRepository.saveAndFlush(aluguelExistente);
-		return "Aluguel atualizado com sucesso.";
-	}
-
-	public String deletarAluguel(Long id) {
-		Aluguel aluguelExistente = buscarPorId(id);
-
-		if (aluguelExistente == null) {
-			return "Aluguel não encontrado.";
-		}
-
-		Cliente clienteExistente = aluguelExistente.getCliente();
-		if (clienteExistente == null) {
-			return "Cliente não encontrado.";
-		}
-
-		List<Aluguel> alugueisEmProgresso = aluguelRepository.buscarAlugueisEmProgresso(clienteExistente.getId());
-		if (alugueisEmProgresso.size() != 1) {
-			return "O cliente não tem nenhum aluguel.";
-		}
-
-		clienteExistente.removerAluguel(aluguelExistente);
-		aluguelRepository.delete(aluguelExistente);
-		return "Aluguel deletado com sucesso.";
-	}
-
-	public List<Aluguel> listarAlugueis() {
-		return aluguelRepository.listarAlugueis();
-	}
-
-	public String adicionarItemAoAluguel(Long aluguelId, String titulo, int quantidade) {
-		Aluguel aluguelExistente = buscarPorId(aluguelId);
-
-		if (aluguelExistente == null) {
-			return "Aluguel não encontrado.";
-		}
-
-		Livro livroExistente = livroService.buscarPorTitulo(titulo);
-
-		if (livroExistente == null) {
-			return "Esse livro não existe.";
-		}
-
-		boolean itemExistente = aluguelExistente.getItens().stream()
-				.anyMatch(item -> item.getLivro().getTitulo().equals(titulo));
-
-		if (itemExistente) {
-			return "Item já adicionado ao Aluguel.";
-		}
-
-		Item item = new Item(livroExistente, quantidade);
-		boolean itemAdicionado = itemService.adicionarItem(item);
-
-		if (itemAdicionado) {
-			aluguelExistente.adicionarItem(item);
-			aluguelRepository.saveAndFlush(aluguelExistente);
-			return "Item adicionado ao aluguel. ItemId: " + item.getId();
-		} else {
-			return "Erro ao adicionar o item.";
-		}
-	}
-
-	public String deletarItemDoAluguel(Long aluguelId, Long itemId) {
-		Aluguel aluguelExistente = buscarPorId(aluguelId);
-
-		if (aluguelExistente == null) {
-			return "Aluguel não encontrado.";
-		}
-
-		if (aluguelExistente.isFinalizado()) {
-			return "Aluguel já finalizado.";
-		}
-
-		boolean itemExistente = aluguelExistente.getItens().stream().anyMatch(item -> item.getId().equals(itemId));
-
-		if (!itemExistente) {
-			return "Item não existe no aluguel.";
-		}
-
-		Item itemParaRemover = itemService.buscarPorId(itemId);
-
-		if (itemParaRemover == null) {
-			return "Item não encontrado no aluguel.";
-		}
-
-		aluguelExistente.removerItem(itemParaRemover);
-		itemService.deletarItem(itemId);
-
-		if (aluguelExistente.getItens().isEmpty()) {
-			aluguelRepository.delete(aluguelExistente);
-			return "Item removido do aluguel e aluguel fechado.";
-		} else {
-			aluguelRepository.saveAndFlush(aluguelExistente);
-			return "Item removido do aluguel com sucesso.";
-		}
-	}
-
-	public String atualizarQuantidadeItemNoAluguel(Long aluguelId, Long itemId, int novaQuantidade) {
-		Aluguel aluguelExistente = buscarPorId(aluguelId);
-
-		if (aluguelExistente == null) {
-			return "Aluguel não encontrado.";
-		}
-
-		if (aluguelExistente.isFinalizado()) {
-			return "Aluguel já finalizado.";
-		}
-
-		boolean itemExistente = aluguelExistente.getItens().stream().anyMatch(item -> item.getId().equals(itemId));
-
-		if (!itemExistente) {
-			return "Item não existe no aluguel.";
-		}
-
-		Item itemParaAtualizar = itemService.buscarPorId(itemId);
-
-		if (itemParaAtualizar == null) {
-			return "Item não encontrado no aluguel.";
-		}
-
-		itemParaAtualizar.setQuantidade(novaQuantidade);
-		itemService.atualizarItem(itemId, itemParaAtualizar.getLivro(), novaQuantidade);
-		aluguelRepository.saveAndFlush(aluguelExistente);
-		return "Quantidade do item no aluguel atualizada com sucesso.";
-	}
-
-	public String finalizarAluguel(Long aluguelId) {
-		Aluguel aluguelExistente = buscarPorId(aluguelId);
-
-		if (aluguelExistente == null) {
-			return "Aluguel não encontrado.";
-		}
-
-		if (aluguelExistente.isFinalizado()) {
-			return "Aluguel já finalizado.";
-		}
-
-		if (aluguelExistente.getItens().isEmpty()) {
-			return "O aluguel precisa ter pelo menos 1 item.";
-		}
-
-		aluguelExistente.finalizar();
-		aluguelRepository.saveAndFlush(aluguelExistente);
-		return "Aluguel finalizado.";
-	}
-
-	public List<Item> listarItensDoAluguel(Long aluguelId) {
-		Aluguel aluguelExistente = buscarPorId(aluguelId);
-		return (aluguelExistente != null) ? aluguelExistente.getItens() : null;
-	}
+        if (aluguelExistente != null) {
+            aluguelRepository.delete(aluguelExistente);
+            return true;
+        }
+        return false;
+    }
 }

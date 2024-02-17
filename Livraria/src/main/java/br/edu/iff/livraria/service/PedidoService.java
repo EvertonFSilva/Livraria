@@ -1,5 +1,6 @@
 package br.edu.iff.livraria.service;
 
+import br.edu.iff.livraria.entities.Aluguel;
 import br.edu.iff.livraria.entities.Cliente;
 import br.edu.iff.livraria.entities.Item;
 import br.edu.iff.livraria.entities.Livro;
@@ -8,7 +9,7 @@ import br.edu.iff.livraria.repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -23,197 +24,218 @@ public class PedidoService {
 	@Autowired
 	private ItemService itemService;
 
-	@Autowired
-	private LivroService livroService;
+    @Autowired
+    private LivroService livroService;
 
 	public Pedido buscarPorId(Long id) {
 		return pedidoRepository.buscarPorId(id);
 	}
 
-	public String adicionarPedido(Long clienteId, String formaPagamento) {
-		Cliente clienteExistente = clienteService.buscarPorId(clienteId);
-		if (clienteExistente == null) {
-			return "Cliente não encontrado.";
+	public String adicionarPedido(Long clienteId) {
+		Cliente clienteExistente = clienteService.buscarCliente(clienteId);
+		if (clienteExistente != null) {
+			if (pedidoRepository.buscarPedidosEmProgresso(clienteId).size() != 0) {
+				Pedido novoPedido = new Pedido(clienteService.buscarCliente(clienteId));
+				clienteExistente.adicionarPedido(novoPedido);
+				pedidoRepository.save(novoPedido);
+				pedidoRepository.flush();
+			} else {
+				return "Cliente já tem uma compra em progresso.";
+			}
 		}
 
-		List<Pedido> pedidosEmProgresso = pedidoRepository.buscarPedidosEmProgresso(clienteId);
-		if (!pedidosEmProgresso.isEmpty()) {
-			return "Cliente já tem um pedido em progresso.";
-		}
-
-		Pedido novoPedido = new Pedido(clienteExistente, formaPagamento);
-		clienteExistente.adicionarPedido(novoPedido);
-		pedidoRepository.saveAndFlush(novoPedido);
-		return "Pedido adicionado. Id: " + novoPedido.getId();
+		return "Cliente não encontrado.";
 	}
 
-	public String atualizarPedido(Long pedidoId, Long clienteId, float valorTotal, LocalDateTime dataPedido, LocalDateTime dataEntrega,
+	public String atualizarPedido(Long pedidoId, Long clienteId, float valorTotal, Date dataPedido, Date dataEntrega,
 			String formaPagamento) {
-		Cliente clienteExistente = clienteService.buscarPorId(clienteId);
-		if (clienteExistente == null) {
-			return "Cliente não encontrado.";
-		}
+		Cliente clienteExistente = clienteService.buscarCliente(clienteId);
+		if (clienteExistente != null) {
 
-		Pedido pedidoExistente = buscarPorId(pedidoId);
-		if (pedidoExistente == null || !pedidoExistente.getCliente().getId().equals(clienteId)) {
-			return "Pedido não encontrado ou não pertence a esse Cliente.";
-		}
+			Pedido pedidoExistente = buscarPorId(pedidoId);
 
-		if (pedidoExistente.isFinalizado()) {
-			return "Pedido já finalizado.";
+			if (pedidoExistente != null) {
+				if (!pedidoExistente.getFinalizado()) {
+					pedidoExistente.setValorTotal(valorTotal);
+					pedidoExistente.setDataPedido(dataPedido);
+					pedidoExistente.setDataEntrega(dataEntrega);
+					pedidoExistente.setFormaPagamento(formaPagamento);
+					pedidoRepository.save(pedidoExistente);
+					pedidoRepository.flush();
+					return "Pedido atualizado com sucesso.";
+				} else {
+					return "Compra já finalizada.";
+				}
+			} else {
+				return "Pedido não encontrado.";
+			}
 		}
-
-		pedidoExistente.setValorTotal(valorTotal);
-		pedidoExistente.setDataPedido(dataPedido);
-		pedidoExistente.setDataEntrega(dataEntrega);
-		pedidoExistente.setFormaPagamento(formaPagamento);
-		pedidoRepository.saveAndFlush(pedidoExistente);
-		return "Pedido atualizado com sucesso.";
+		return "Cliente não encontrado.";
 	}
 
 	public String deletarPedido(Long id) {
 		Pedido pedidoExistente = buscarPorId(id);
 
-		if (pedidoExistente == null) {
+		if (pedidoExistente != null) {
+			Cliente clienteExistente = pedidoExistente.getCliente();
+			if (clienteExistente != null) {
+				clienteExistente.removerPedido(pedidoExistente);
+				return "Pedido deletado com sucesso.";
+			} else {
+				return "Cliente não encontrado.";
+			}
+		} else {
 			return "Pedido não encontrado.";
 		}
-
-		Cliente clienteExistente = pedidoExistente.getCliente();
-		if (clienteExistente == null) {
-			return "Cliente não encontrado.";
-		}
-
-		List<Pedido> pedidosEmProgresso = pedidoRepository.buscarPedidosEmProgresso(clienteExistente.getId());
-		if (pedidosEmProgresso.size() != 1) {
-			return "O cliente não tem nenhum pedido.";
-		}
-
-		clienteExistente.removerPedido(pedidoExistente);
-		pedidoRepository.delete(pedidoExistente);
-		return "Pedido deletado com sucesso.";
 	}
 
 	public List<Pedido> listarPedidos() {
 		return pedidoRepository.listarPedidos();
 	}
 
-	public String adicionarItemAoPedido(Long pedidoId, String titulo, int quantidade) {
+	public String adicionarItemAoPedido(Long pedidoId, String titulo, int quantidade, int tipo) {
+
 		Pedido pedidoExistente = buscarPorId(pedidoId);
 
-		if (pedidoExistente == null) {
-			return "Pedido não encontrado.";
-		}
+		if (pedidoExistente != null) {
+			
+	    	Livro livro =  livroService.buscarPorTitulo(titulo);
+	    	Item item = new Item(livro, quantidade, tipo, tipo == 1 ? livro.getPrecoAluguel() : livro.getPrecoVenda());
 
-		Livro livroExistente = livroService.buscarPorTitulo(titulo);
-		if (livroExistente == null) {
-			return "Esse livro não existe.";
-		}
-
-		boolean itemExistente = pedidoExistente.getItens().stream()
-				.anyMatch(item -> item.getLivro().getTitulo().equals(titulo));
-
-		if (itemExistente) {
-			return "Item já adicionado ao Pedido.";
-		}
-
-		Item item = new Item(livroExistente, quantidade);
-		boolean itemAdicionado = itemService.adicionarItem(item);
-
-		if (itemAdicionado) {
-			pedidoExistente.adicionarItem(item);
-			pedidoRepository.saveAndFlush(pedidoExistente);
-			return "Item adicionado ao pedido. ItemId: " + item.getId();
+			boolean itemExistente = itemService.adicionarItem(item);
+			if (itemExistente) {
+				pedidoExistente.adicionarItem(item);
+				return "Item adicionado.";
+			} else {
+				return "Item já adicionado.";
+			}
 		} else {
-			return "Erro ao adicionar o item.";
+			return "Pedido não encontrado.";
 		}
 	}
 
 	public String deletarItemDoPedido(Long pedidoId, Long itemId) {
 		Pedido pedidoExistente = buscarPorId(pedidoId);
 
-		if (pedidoExistente == null) {
-			return "Pedido não encontrado.";
-		}
+		if (pedidoExistente != null) {
+			if (!pedidoExistente.getFinalizado()) {
 
-		if (pedidoExistente.isFinalizado()) {
-			return "Pedido já finalizado.";
-		}
+				Item itemParaRemover = pedidoExistente.getItemById(itemId);
 
-		boolean itemExistente = pedidoExistente.getItens().stream().anyMatch(item -> item.getId().equals(itemId));
-
-		if (!itemExistente) {
-			return "Item não existe no pedido.";
-		}
-
-		Item itemParaRemover = itemService.buscarPorId(itemId);
-
-		if (itemParaRemover == null) {
-			return "Item não encontrado no pedido.";
-		}
-
-		pedidoExistente.removerItem(itemParaRemover);
-		itemService.deletarItem(itemId);
-
-		if (pedidoExistente.getItens().isEmpty()) {
-			pedidoRepository.delete(pedidoExistente);
-			return "Item removido do pedido e pedido fechado.";
+				if (itemParaRemover != null) {
+					pedidoExistente.getItens().remove(itemParaRemover);
+					itemService.deletarItem(itemId);
+					return "Item removido do pedido com sucesso.";
+				} else {
+					return "Item não encontrado no pedido.";
+				}
+			} else {
+				return "Compra já finalizada.";
+			}
 		} else {
-			pedidoRepository.saveAndFlush(pedidoExistente);
-			return "Item removido do pedido com sucesso.";
+			return "Pedido não encontrado.";
 		}
 	}
 
-	public String atualizarQuantidadeItemNoPedido(Long pedidoId, Long itemId, int novaQuantidade) {
+	public String adicionarAluguelAoItem(Long pedidoId, Long itemId) {
 		Pedido pedidoExistente = buscarPorId(pedidoId);
 
-		if (pedidoExistente == null) {
+		if (pedidoExistente != null) {
+			Item itemExistente = pedidoExistente.getItemById(itemId);
+
+			if (itemExistente != null) {
+				boolean aluguelAdicionado = itemService.adicionarAluguel(itemExistente);
+				if (aluguelAdicionado) {
+					return "O aluguel foi adicionado ao item.";
+				} else {
+					return "O aluguel não foi adicionado ao item.";
+				}
+			} else {
+				return "Item não encontrado no pedido.";
+			}
+		} else {
 			return "Pedido não encontrado.";
 		}
+	}
 
-		if (pedidoExistente.isFinalizado()) {
-			return "Pedido já finalizado.";
+	public String deletarAluguelDoItem(Long pedidoId, Long itemId) {
+		Pedido pedidoExistente = buscarPorId(pedidoId);
+
+		if (pedidoExistente != null) {
+			Item itemExistente = pedidoExistente.getItemById(itemId);
+
+			if (itemExistente != null) {
+				boolean aluguelRemovido = itemService.deletarAluguel(itemExistente.getAluguel().getId());
+				if (aluguelRemovido) {
+					return "O aluguel foi removido do item.";
+				} else {
+					return "O aluguel não foi removido do item.";
+				}
+			} else {
+				return "Item não encontrado no pedido.";
+			}
+		} else {
+			return "Pedido não encontrado.";
 		}
+	}
 
-		boolean itemExistente = pedidoExistente.getItens().stream().anyMatch(item -> item.getId().equals(itemId));
+	public String buscarAluguel(Long pedidoId, Long itemId, Long aluguelId) {
+		Pedido pedidoExistente = buscarPorId(pedidoId);
 
-		if (!itemExistente) {
-			return "Item não existe no pedido.";
+		if (pedidoExistente != null) {
+			Item itemExistente = pedidoExistente.getItemById(itemId);
+
+			if (itemExistente != null) {
+				Aluguel aluguel = itemService.buscarAluguel(aluguelId);
+
+				if (aluguel != null) {
+					return "Aluguel encontrado: " + aluguel.toString();
+				} else {
+					return "Aluguel não encontrado.";
+				}
+			} else {
+				return "Item não encontrado no pedido.";
+			}
+		} else {
+			return "Pedido não encontrado.";
 		}
+	}
 
-		Item itemParaAtualizar = itemService.buscarPorId(itemId);
+	public List<Aluguel> listarAlugueisPorCliente(Long pedidoId, Long clienteId) {
+		Pedido pedidoExistente = buscarPorId(pedidoId);
 
-		if (itemParaAtualizar == null) {
-			return "Item não encontrado no pedido.";
+		if (pedidoExistente != null) {
+			return itemService.listarAlugueisPorCliente(clienteId);
 		}
-
-		itemParaAtualizar.setQuantidade(novaQuantidade);
-		itemService.atualizarItem(itemId, itemParaAtualizar.getLivro(), novaQuantidade);
-		pedidoRepository.saveAndFlush(pedidoExistente);
-		return "Quantidade do item no pedido atualizada com sucesso.";
+		return null;
 	}
 
 	public String finalizarPedido(Long pedidoId) {
 		Pedido pedidoExistente = buscarPorId(pedidoId);
 
-		if (pedidoExistente == null) {
+		if (pedidoExistente != null) {
+			if (!pedidoExistente.getFinalizado()) {
+				if (pedidoExistente.getItens().size() > 0) {
+					pedidoExistente.finalizar();
+					pedidoRepository.flush();
+					return "Compra finalizada.";
+				} else {
+					return "A compra precisa ter pelo menos 1 item.";
+				}
+			} else {
+				return "Compra já finalizada.";
+			}
+		} else {
 			return "Pedido não encontrado.";
 		}
-
-		if (pedidoExistente.isFinalizado()) {
-			return "Pedido já finalizado.";
-		}
-
-		if (pedidoExistente.getItens().isEmpty()) {
-			return "O pedido precisa ter pelo menos 1 item.";
-		}
-
-		pedidoExistente.finalizar();
-		pedidoRepository.saveAndFlush(pedidoExistente);
-		return "Pedido finalizado.";
 	}
+	
+    public List<Item> listarItensDoPedido(Long pedidoId) {
+        Pedido pedidoExistente = buscarPorId(pedidoId);
 
-	public List<Item> listarItensDoPedido(Long pedidoId) {
-		Pedido pedidoExistente = buscarPorId(pedidoId);
-		return (pedidoExistente != null) ? pedidoExistente.getItens() : null;
-	}
+        if (pedidoExistente != null) {
+            return pedidoExistente.getItens();
+        }
+        return null;
+    }
 }
