@@ -1,79 +1,73 @@
 package br.edu.iff.livraria.controller.view;
 
+import br.edu.iff.livraria.entities.Livro;
+import br.edu.iff.livraria.service.LivroService;
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import br.edu.iff.livraria.entities.Livro;
-import br.edu.iff.livraria.service.LivroService;
 
-import jakarta.validation.Valid;
+import java.util.List;
 
 @Controller
-@RequestMapping("/livro")
+@RequestMapping("livro")
 public class LivroController {
 
 	@Autowired
 	private LivroService livroService;
 
-	@GetMapping("/listar")
+	@GetMapping
 	public String listarLivros(Model model) {
-		model.addAttribute("livros", livroService.listarLivros());
-		return "livro/listar";
+		List<Livro> livros = livroService.listarLivros();
+		model.addAttribute("livros", livros);
+		return "listarLivros";
 	}
 
-	@GetMapping("/novo")
-	public String exibirFormularioNovoLivro(Model model) {
-		model.addAttribute("livro", new Livro());
-		return "livro/formulario";
+	@GetMapping("/adicionar")
+	public String exibirFormularioAdicionar() {
+		return "adicionarLivro";
 	}
 
-	@PostMapping("/novo")
-	public String adicionarLivro(@Valid @ModelAttribute Livro livro, BindingResult resultado, Model model) {
-		if (resultado.hasErrors()) {
-			model.addAttribute("mensagemErro", resultado.getAllErrors());
-			return "error";
+	@PostMapping("/adicionar")
+	public String adicionarLivro(@Valid @RequestParam String titulo, @Valid @RequestParam String autor,
+			@Valid @RequestParam String genero, @Valid @RequestParam int qtdPaginas, @Valid @RequestParam float preco,
+			BindingResult result, Model model) {
+		if (result.hasErrors()) {
+			return "adicionarLivro";
 		}
 
-		livroService.adicionarLivro(livro);
-		return "redirect:/livro/listar";
-	}
-
-	@GetMapping("/detalhes/{id}")
-	public String exibirDetalhesLivro(@PathVariable Long id, Model model) {
-		Livro livro = livroService.buscarPorId(id);
-		model.addAttribute("livro", livro);
-		return "livro/detalhes";
+		String mensagem = livroService.adicionarLivro(titulo, autor, genero, qtdPaginas, preco);
+		model.addAttribute("mensagem", mensagem);
+		return "redirect:/livro/adicionar";
 	}
 
 	@GetMapping("/editar/{id}")
-	public String exibirFormularioEditarLivro(@PathVariable Long id, Model model) {
+	public String exibirFormularioEditar(@PathVariable Long id, Model model) {
 		Livro livro = livroService.buscarPorId(id);
 		model.addAttribute("livro", livro);
-		return "livro/formulario";
+		return "editarLivro";
 	}
 
 	@PostMapping("/editar/{id}")
-	public String editarLivro(@PathVariable Long id, @Valid @ModelAttribute Livro livro, BindingResult resultado,
-			Model model) {
-		if (resultado.hasErrors()) {
-			return "error";
+	public String editarLivro(@PathVariable Long id, @Valid @RequestParam String titulo,
+			@Valid @RequestParam String autor, @Valid @RequestParam String genero, @Valid @RequestParam int qtdPaginas,
+			@Valid @RequestParam float preco, BindingResult result, Model model) {
+		if (result.hasErrors()) {
+			return "editarLivro";
 		}
 
-		String titulo = livro.getTitulo();
-		String genero = livro.getGenero();
-		String autor = livro.getAutor();
-		int qtdPaginas = livro.getQtdPaginas();
-		float preco = livro.getPreco();
-
-		livroService.atualizarLivro(id, titulo, autor, genero, qtdPaginas, preco);
-		return "redirect:/livro/listar";
+		String mensagem = livroService.atualizarLivro(id, titulo, autor, genero, qtdPaginas, preco);
+		model.addAttribute("mensagem", mensagem);
+		return "redirect:/livro/editar/" + id;
 	}
 
 	@GetMapping("/excluir/{id}")
-	public String excluirLivro(@PathVariable Long id) {
-		livroService.deletarLivro(id);
-		return "redirect:/livro/listar";
+	public String excluirLivro(@PathVariable Long id, Model model) {
+		String mensagem = livroService.deletarLivro(id);
+		model.addAttribute("mensagem", mensagem);
+		return "redirect:/livro/excluir/" + id;
 	}
 }

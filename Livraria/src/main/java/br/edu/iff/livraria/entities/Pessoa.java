@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -27,30 +28,33 @@ public class Pessoa implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@NotBlank(message = "Não pode ser em branco ou nulo")
-	@Pattern(regexp = "[0-9]{11}", message = "Deve seguir o padrão do CPF")
-	@Column(unique = true, length = 11)
-	private String cpf;
+    @NotBlank(message = "O CPF não pode ser em branco ou nulo")
+    @Pattern(regexp = "\\d{11}", message = "O CPF deve conter exatamente 11 dígitos numéricos")
+    @Column(unique = true, length = 11)
+    private String cpf;
 
-	@Size(min = 3, max = 60, message = "Tem que ter entre 3 e 60 caractéres")
-	@Column(length = 60)
-	private String nome;
+    @NotBlank(message = "O nome não pode ser em branco ou nulo")
+    @Size(min = 3, max = 60, message = "O nome deve conter entre 3 e 60 caracteres")
+    @Column(length = 60)
+    private String nome;
 
-	@Email(message = "Tem que ser em formato de email")
-	@Column(length = 60)
-	private String email;
+    @Email(message = "O email deve ser válido")
+    @NotBlank(message = "O email não pode ser em branco ou nulo")
+    @Column(length = 60)
+    private String email;
 
-	@Nullable
-	@ElementCollection
-	@Size(min = 1, max = 2, message = "Tem que ter entre 1 e 2 telefones")
-	@Column(length = 11)
-	private List<@Pattern(regexp = "[0-9]{9,11}", message = "Deve seguir o padrão do Telefone") String> telefones;
+    @Nullable
+    @ElementCollection
+    @Size(min = 1, max = 2, message = "Deve haver entre 1 e 2 números de telefone")
+    @Valid
+    private List<@NotBlank(message = "O telefone não pode ser em branco ou nulo") @Pattern(regexp = "\\d{9,11}", message = "O telefone deve conter entre 9 e 11 dígitos numéricos") String> telefones;
 
-	@Size(min = 10, max = 100, message = "Tem que ter entre 20 e 100 caractéres")
-	@Column(length = 100)
-	private String endereco;
+    @Size(min = 20, max = 100, message = "O endereço deve conter entre 20 e 100 caracteres")
+    @NotBlank(message = "O endereço não pode ser em branco ou nulo")
+    @Column(length = 100)
+    private String endereco;
 
-	@ManyToOne()
+	@ManyToOne
 	@JoinColumn(name = "pessoa_fk")
 	private Usuario usuario;
 
