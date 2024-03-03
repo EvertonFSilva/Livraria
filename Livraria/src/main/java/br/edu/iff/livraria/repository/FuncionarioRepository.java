@@ -20,6 +20,9 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
 	@Query(value = "SELECT * FROM Funcionario WHERE nome = ?1", nativeQuery = true)
 	Funcionario buscarPorNome(String nome);
 
+    @Query(value = "SELECT * FROM Funcionario WHERE pessoa_fk = (SELECT id FROM Usuario WHERE login = :login)", nativeQuery = true)
+    Funcionario buscarPorLogin(String login);
+
 	@Query(value = "SELECT CASE WHEN EXISTS (SELECT 1 FROM Funcionario c JOIN c.telefones t WHERE c.cpf = :cpf AND :telefone IN elements(t)) THEN true ELSE false END")
 	boolean existeTelefoneNoCPF(String cpf, String telefone);
 

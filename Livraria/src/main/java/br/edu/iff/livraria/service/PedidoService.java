@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -194,5 +195,20 @@ public class PedidoService {
 	public List<Item> listarItensDoPedido(Long pedidoId) {
 		Pedido pedidoExistente = buscarPorId(pedidoId);
 		return (pedidoExistente != null) ? pedidoExistente.getItens() : null;
+	}
+	
+	public List<Livro> listarLivrosDoPedido(Long pedidoId) {		
+		List<Livro> listaLivros = new ArrayList<>();
+		Pedido pedido = buscarPorId(pedidoId);
+
+		if (pedido != null && !pedido.getItens().isEmpty()) {
+			for (Item item : pedido.getItens()) {
+				Livro livro = item.getLivro();
+				if (livro != null) {
+					listaLivros.add(livro);
+				}
+			}
+		}
+		return listaLivros;
 	}
 }

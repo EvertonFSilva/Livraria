@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<script th:src="@{~/js/color-modes.js}"></script>
+	<script th:src="@{~/js/bootstrap.bundle.min.js}"></script>
+	<link th:href="@{~/css/bootstrap.min.css}" rel="stylesheet">
+	<title>Cadastro</title>
+</head>
+
+<body>
+
+	<div th:insert="~{base :: header}"></div>
+
+	<script th:inline="javascript">
+		document.addEventListener('DOMContentLoaded', function () {
+			document.getElementById('cpfAdd').value = '';
+		});
+	</script>
+
+	<section class="py-5 text-center container">
+		<div class="row py-lg-2">
+			<div class="col-lg-6 col-md-8 mx-auto">
+
+				<h1>Cadastrar novo Cliente.</h1>
+				<form action="#" th:action="@{/cliente/cadastro/add}" th:object="${cliente_add}" method="post">
+					<legend>Insira os valores</legend>
+					<p>
+						<label for="nome">Nome</label> <input type="text" name="nome" id="nome" th:field="*{nome}"
+							required />
+					</p>
+					<p>
+						<label for="email">Email</label> <input type="email" name="email" id="email" th:field="*{email}"
+							required />
+					</p>
+					<p>
+						<input type="text" name="cpf" id="cpfAdd" th:field="*{cpf}" pattern="\d{11}"
+							placeholder="00000000000" required />
+					</p>
+					<p>
+						<label for="senha">Senha</label> <input type="text" name="senha" id="senha" th:field="*{senha}"
+							required />
+					</p>
+					<p>
+						<input type="tel" name="telefone" th:field="*{telefone[0]}" pattern="\d{9,11}"
+							placeholder="0000000000" id="telefone" required />
+					</p>
+
+					<button class="btn btn-success rounded-pill px-3" type="submit">Registrar</button>
+
+				</form>
+				<div th:if="${respostaAdd != null}">
+					<span th:text="${respostaAdd}"></span>
+				</div>
+				<a class="btn btn-secondary rounded-pill px-3 my-2" th:href="@{~/.}">Voltar</a>
+	</section>
+	</div>
+	</div>
+
+</body>
+
+</html>

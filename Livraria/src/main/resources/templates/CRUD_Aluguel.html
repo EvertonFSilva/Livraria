@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<div th:replace="~{controle :: import}"></div>
+	<title>CRUD Aluguel</title>
+</head>
+<style>
+	table,
+	th,
+	td {
+		border: 1px solid black;
+		text-align: center;
+	}
+</style>
+
+<body>
+
+	<div th:replace="~{controle :: header}"></div>
+	<div class="row">
+		<div class="sidebar border border-right col-md-3 col-lg-2 p-0 bg-body-tertiary">
+
+
+			<div th:replace="~{controle :: sidebar}"></div>
+			<div th:replace="~{controle :: icones}"></div>
+
+		</div>
+		<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+			<div th:if="${aluguel_add != null}">
+				<h1>Registrar um novo aluguel</h1>
+				<form action="#" th:action="@{/aluguel/CRUD/add}" th:object="${aluguel_add}" method="post">
+					<fieldset>
+						<legend>Escolha o cliente do Aluguel</legend>
+						<div th:if="${#lists.isEmpty(cliente_lista)}">
+							<p>Nenhum cliente disponível no momento.</p>
+						</div>
+						<div th:unless="${#lists.isEmpty(cliente_lista)}">
+							<p>
+								<label for="cliente">Clientes:</label> <br /> <span
+									th:each="clienteAtual:${cliente_lista}">
+									<input type="radio" name="clienteEscolhido" th:field="*{cliente}"
+										th:value="${clienteAtual}" required />
+									Nome: <label for="nome" th:text="${clienteAtual.nome}"></label> | CPF: <label
+										for="cpf" th:text="${clienteAtual.cpf}"></label><br />
+								</span>
+							</p>
+							<p>
+								<label for="formaPagamento">Forma de Pagamento:</label>
+								<input type="text" name="formaPagamento" id="formaPagamento"
+									th:field="*{formaPagamento}" required />
+							</p>
+							<p>
+								<button type="submit">Registrar</button>
+							</p>
+						</div>
+					</fieldset>
+				</form>
+				<div th:if="${respostaAdd != null}">
+					<span th:text="${respostaAdd}"></span>
+				</div>
+
+			</div>
+
+			<div th:if="${aluguel_lista != null}">
+				<h2>Buscar Aluguel</h2>
+				<form th:action="@{/aluguel/CRUD/buscaAluguel}" method="post">
+					<p>
+						<label for="cpf">CPF do Cliente</label> <input type="text" name="cpf" id="cpf" required />
+
+						<button type="submit">Buscar</button>
+					</p>
+				</form>
+
+				<h1>Lista de todos os Alugueis</h1>
+				<table>
+					<tr>
+						<th>Id</th>
+						<th>Valor Total</th>
+						<th>Quantidade de Produtos</th>
+						<th>Está finalizado</th>
+					</tr>
+					<tr th:each="aluguel : ${aluguel_lista}" th:if="${aluguel.cliente != null}">
+						<td th:text="${aluguel.id}"></td>
+						<td th:text="${aluguel.valorTotal}"></td>
+						<td th:text="${aluguel.itens.size()}"></td>
+						<td th:text="${aluguel.finalizado}"></td>
+						<td>
+							<button th:if="${aluguel.finalizado}==false">
+								<a th:href="@{/aluguel/CRUD/editar(id=${aluguel.id})}">Editar</a>
+							</button>
+							<button>
+								<a th:href="@{/aluguel/CRUD/deletar(id=${aluguel.id})}">Excluir</a>
+							</button>
+							<button th:if="${aluguel.finalizado}==false">
+								<a th:href="@{/aluguel/CRUD/finalizar(id=${aluguel.id})}">Finalizar</a>
+							</button>
+						</td>
+					</tr>
+				</table>
+				<table style="border: none">
+					<tr th:if="${respostaFinalizar != null}">
+						<td style="border: none" th:text="${respostaFinalizar}"></td>
+					</tr>
+				</table>
+			</div>
+
+			<div th:if="${aluguel_edit != null &&!aluguel_edit.finalizado}">
+				<h1>Atualizar Aluguel</h1>
+				<form action="@{/aluguel/CRUD/atualizar}" th:action="@{/aluguel/CRUD/atualizar}"
+					th:object="${aluguel_edit}" method="post">
+					<fieldset>
+						<legend>Insira os valores</legend>
+						<p hidden>
+							<label for="id">Id Aluguel</label>
+							<input type="number" name="id" id="id" th:value="*{id}" required />
+						</p>
+						<p>
+							<label for="cpf">CPF do Cliente</label><br />
+							<span th:each="clienteAtual:${cliente_lista}">
+								<input type="radio" name="clienteId" th:value="${clienteAtual.id}"
+									th:checked="${clienteAtual.id == aluguel_edit.cliente.id}" required />
+								Nome: <span th:text="${clienteAtual.nome}"></span> | CPF: <span
+									th:text="${clienteAtual.cpf}"></span><br />
+							</span>
+						</p>
+						<p>
+							<label for="valorTotal">Valor Total</label>
+							<input type="text" name="valorTotal" id="valorTotal" th:value="*{valorTotal}" required />
+						</p>
+						<p>
+							<label for="dataInicio">Data de Início</label>
+							<input type="datetime-local" name="dataInicio" id="dataInicio" th:value="*{dataInicio}"
+								required />
+						</p>
+						<p>
+							<label for="dataFim">Data de Término</label>
+							<input type="datetime-local" name="dataFim" id="dataFim" th:value="*{dataFim}" required />
+						</p>
+						<p>
+							<label for="dataEntrega">Data de Entrega</label>
+							<input type="datetime-local" name="dataEntrega" id="dataEntrega" th:value="*{dataEntrega}"
+								required />
+						</p>
+						<p>
+							<label for="formaPagamento">Forma de Pagamento</label>
+							<input type="text" name="formaPagamento" id="formaPagamento" th:value="*{formaPagamento}"
+								required />
+						</p>
+						<p>
+							<button type="submit">Atualizar</button>
+						</p>
+					</fieldset>
+				</form>
+
+				<h2>Lista de Livros do Aluguel</h2>
+				<table>
+					<tr>
+						<th>Id</th>
+						<th>Título</th>
+						<th>Autor</th>
+						<th>Gênero</th>
+						<th>Quantidade de Páginas</th>
+						<th>Preço</th>
+					</tr>
+					<tr th:each="livro : ${livro_lista}" th:if="${livro.titulo != null}">
+						<td th:text="${livro.id}"></td>
+						<td th:text="${livro.titulo}"></td>
+						<td th:text="${livro.autor}"></td>
+						<td th:text="${livro.genero}"></td>
+						<td th:text="${livro.qtdPaginas}"></td>
+						<td th:text="${livro.preco}"></td>
+						<td>
+							<button>
+								<a
+									th:href="@{/aluguel/CRUD/deletarItem(id=${aluguel_edit.id},titulo=${livro.titulo})}">Excluir</a>
+							</button>
+						</td>
+					</tr>
+				</table>
+				<h3>Adicionar Livro</h3>
+				<form th:action="@{/aluguel/CRUD/addLivro}" method="post">
+					<p hidden>
+						<label for="id">Id Aluguel</label> <input type="number" name="id" id="id"
+							th:value="*{aluguel_edit.id}" required />
+					</p>
+					<p>
+						<label for="titulo">Titulo:</label> <input type="text" name="titulo" id="titulo" required />
+
+						<button type="submit">Adicionar</button>
+					</p>
+				</form>
+			</div>
+		</main>
+	</div>
+</body>
+
+</html>

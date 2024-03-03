@@ -11,6 +11,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 
 @Entity
 public class Item implements Serializable {
@@ -22,8 +24,10 @@ public class Item implements Serializable {
 	private Long id;
 
 	@ManyToOne
+    @NotNull(message = "O livro não pode ser nulo")
 	private Livro livro;
 
+    @PositiveOrZero(message = "A quantidade deve ser maior ou igual a 0")
 	private int quantidade;
 
 	@ManyToOne

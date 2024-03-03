@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<div th:replace="~{controle :: import}"></div>
+	<title>CRUD Funcionário</title>
+</head>
+<style>
+	table,
+	th,
+	td {
+		border: 1px solid black;
+		text-align: center;
+	}
+</style>
+
+<body>
+
+
+	<div th:replace="~{controle :: header}"></div>
+	<div class="row">
+		<div class="sidebar border border-right col-md-3 col-lg-2 p-0 bg-body-tertiary">
+
+			<div th:replace="~{controle :: sidebar}"></div>
+			<div th:replace="~{controle :: icones}"></div>
+
+		</div>
+		<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+			<div th:if="${funcionario_add != null}">
+				<script th:inline="javascript">
+					document.addEventListener('DOMContentLoaded', function () {
+						document.getElementById('cpfAdd').value = '';
+					});
+				</script>
+				<h1>Registrar Funcionário.</h1>
+				<form action="#" th:action="@{/funcionario/add}" th:object="${funcionario_add}" method="post">
+					<fieldset>
+						<legend>Insira os valores</legend>
+						<p>
+							<label for="login">Login</label> <input type="text" name="login" id="login"
+								th:value="${funcionario_add.getUsuario.getLogin}" required />
+						</p>
+						<p>
+							<label for="senha">Senha</label> <input type="text" name="senha" id="senha"
+								th:value="${funcionario_add.getUsuario.getSenha}" required />
+						</p>
+						<p>
+							<label for="nome">Nome</label> <input type="text" name="nome" id="nome" th:field="*{nome}"
+								required />
+						</p>
+						<p>
+							<label for="email">Email</label> <input type="email" name="email" id="email"
+								th:field="*{email}" required />
+						</p>
+						<p>
+							<label for="cpf">CPF</label> <input type="text" name="cpf" id="cpfAdd" th:field="*{cpf}"
+								pattern="\d{11}" placeholder="00000000000" required />
+						</p>
+						<p>
+							<input type="tel" name="telefone" th:field="*{telefone[0]}" pattern="\d{9,11}"
+								placeholder="0000000000" id="telefone" required />
+						</p>
+						<p>
+							<label for="cargo">Cargo</label> <input type="text" name="cargo" id="cargo"
+								th:value="*{cargo}" />
+						</p>
+						<p>
+							<label for="salario">Salário</label> <input type="text" name="salario" id="salario"
+								th:value="*{salario}" />
+						</p>
+						<p>
+							<button type="submit">Registrar</button>
+						</p>
+
+					</fieldset>
+				</form>
+				<div th:if="${respostaAdd != null}">
+					<span th:text="${respostaAdd}"></span>
+				</div>
+
+			</div>
+
+
+			<div th:if="${funcionario_lista != null}">
+				<h2>Buscar Funcionário.</h2>
+				<form th:action="@{/funcionario/buscaCPF}" method="post">
+					<p>
+						<label for="cpf">CPF</label> <input type="text" name="cpf" id="cpf" required />
+
+						<button type="submit">Buscar</button>
+					</p>
+				</form>
+
+				<h1>Lista de Funcionários.</h1>
+				<table>
+					<tr>
+						<th>Id</th>
+						<th>Login</th>
+						<th>Senha</th>
+						<th>Nome</th>
+						<th>Email</th>
+						<th>CPF</th>
+						<th>Cargo</th>
+						<th>Salario</th>
+						<th>Telefones</th>
+					</tr>
+					<tr th:each="funcionario : ${funcionario_lista}" th:if="${funcionario.cpf != null}">
+						<td th:text="${funcionario.id}"></td>
+						<td th:text="${funcionario.getUsuario.getLogin}"></td>
+						<td th:text="${funcionario.getUsuario.getSenha}"></td>
+						<td th:text="${funcionario.nome}"></td>
+						<td th:text="${funcionario.email}"></td>
+						<td th:text="${funcionario.cpf}"></td>
+						<td th:text="${funcionario.cargo}"></td>
+						<td th:text="${funcionario.salario}"></td>
+						<td th:text="${#strings.listJoin(funcionario.telefone, ', ')}"></td>
+						<td>
+							<button>
+								<a th:href="@{/funcionario/editar(id=${funcionario.id})}">Editar</a>
+							</button>
+							<button>
+								<a th:href="@{/funcionario/deletePorCPF(cpf=${funcionario.cpf})}">Excluir</a>
+							</button>
+						</td>
+					</tr>
+				</table>
+			</div>
+
+
+			<div th:if="${funcionario_edit != null}">
+				<script th:inline="javascript">
+					document.addEventListener('DOMContentLoaded', function () {
+						document.getElementById('telefoneAdd').value = '';
+					});
+				</script>
+				<h1>Atualizar Funcionario.</h1>
+				<form action="#" th:action="@{/funcionario/atualizar}" th:object="${funcionario_edit}" method="post">
+					<fieldset>
+						<legend>Insira os valores</legend>
+						<p>
+							<label for="login">Novo Login</label> <input type="text" name="login" id="login"
+								th:value="${funcionario_edit.getUsuario.getLogin}" required />
+						</p>
+						<p>
+							<label for="senha">Nova Senha</label> <input type="text" name="senha" id="senha"
+								th:value="${funcionario_edit.getUsuario.getSenha}" required />
+						</p>
+						<p hidden>
+							<label for="cpf">CPF do Funcionario</label> <input type="text" name="cpf" id="cpf"
+								th:value="*{cpf}" required />
+						</p>
+						<p>
+							<label for="nome">Novo Nome</label> <input type="text" name="nome" id="nome"
+								th:value="*{nome}" />
+						</p>
+						<p>
+							<label for="email">Novo Email</label> <input type="email" name="email" id="email"
+								th:value="*{email}" />
+						</p>
+						<p hidden>
+							<label for="telefone">Telefone:</label> <input type="tel" name="telefone"
+								th:field="*{telefone[0]}" id="telefone" required />
+						</p>
+						<p>
+							<label for="salario">Novo Salário</label> <input type="text" name="salario" id="salario"
+								th:value="*{salario}" />
+						</p>
+						<p>
+							<label for="cargo">Novo Cargo</label> <input type="text" name="cargo" id="cargo"
+								th:value="*{cargo}" />
+						</p>
+						<p>
+							<label for="enereco">Novo endereco</label> <input type="text" name="endereco" id="endereco"
+								th:value="*{endereco}" />
+						</p>
+						<p>
+							<button type="submit">Atualizar</button>
+						</p>
+
+					</fieldset>
+				</form>
+
+				<h2>Lista de Telefones.</h2>
+				<table>
+					<tr>
+						<th>Telefones</th>
+					</tr>
+					<tr th:each="telefone : ${telefone_lista}">
+						<td th:text="${telefone}"></td>
+						<td>
+							<button>
+								<a
+									th:href="@{/funcionario/removeTelefone(id=${funcionario_edit.id},telefone=${telefone})}">Excluir</a>
+							</button>
+						</td>
+					</tr>
+				</table>
+
+				<h2>Adicionar Telefone</h2>
+				<form th:action="@{/funcionario/addTelefone}" method="post">
+					<p hidden>
+						<input type="text" name="cpf" id="cpf" th:value="*{funcionario_edit.cpf}" required /><input
+							type="text" name="nome" id="nome" th:value="*{funcionario_edit.nome}" /> <input type="email"
+							name="email" id="email" th:value="*{funcionario_edit.email}" /> <input type="text"
+							name="senha" id="senha" th:value="*{funcionario_edit.senha}" />
+					</p>
+					<p>
+						<label for="telefone">Telefone:</label> <input type="tel" name="telefone"
+							th:field="*{funcionario_edit.telefone[0]}" id="telefoneAdd" pattern="\d{9,11}"
+							placeholder="0000000000" required />
+
+						<button type="submit">Adicionar</button>
+					</p>
+				</form>
+
+			</div>
+		</main>
+	</div>
+</body>
+
+</html>

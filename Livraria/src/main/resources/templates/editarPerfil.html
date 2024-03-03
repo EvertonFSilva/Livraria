@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<script th:src="@{~/js/color-modes.js}"></script>
+	<script th:src="@{~/js/bootstrap.bundle.min.js}"></script>
+	<link th:href="@{~/css/bootstrap.min.css}" rel="stylesheet">
+	<title>Perfil</title>
+</head>
+
+<body>
+	<style>
+		table,
+		th,
+		td {
+			border: 1px solid black;
+			text-align: center;
+		}
+	</style>
+	<div th:insert="~{base :: header}"></div>
+
+	<script th:inline="javascript">
+		document.addEventListener('DOMContentLoaded', function () {
+			document.getElementById('telefoneAdd').value = '';
+		});
+	</script>
+	<div class="album py-5 bg-body-tertiary" style="text-align: center;">
+		<h1><strong>Perfil</strong></h1>
+		<div class="container">
+			<div class="row row-cols-1 row-cols-sm-2 row-cols-md-2 g-3">
+				<div class="col">
+					<form action="#" th:action="@{/cliente/editarPerfil/atualizarValoresPerfil}"
+						th:object="${cliente_edit}" method="post">
+						<h2>Atualizar valores</h2>
+						<small>Mude os valores e aperte no botão para atualizar</small>
+						<p>
+							<label for="login">Login</label> <input type="text" name="login" id="login"
+								th:value="${cliente_edit.getUsuario.getLogin}" required />
+						</p>
+						<p>
+							<label for="senha">Senha</label> <input type="text" name="senha" id="senha"
+								th:value="${cliente_edit.getUsuario.getSenha}" required />
+						</p>
+						<p hidden>
+							<label for="cpf">CPF</label> <input type="text" name="cpf" id="cpf" th:value="*{cpf}"
+								pattern="\d{11}" placeholder="00000000000" required />
+						</p>
+						<p>
+							<label for="nome">Nome</label> <input type="text" name="nome" id="nome"
+								th:value="*{nome}" />
+						</p>
+						<p>
+							<label for="email">Email</label> <input type="email" name="email" id="email"
+								th:value="*{email}" />
+						</p>
+						<p hidden>
+							<label for="telefone">Telefone:</label> <input type="tel" name="telefone"
+								th:field="*{telefone[0]}" id="telefone" pattern="\d{9,11}" placeholder="0000000000" required />
+						</p>
+						<p>
+							<button type="submit">Atualizar</button>
+						</p>
+
+					</form>
+				</div>
+				<div class="col">
+					<h2>Editar Telefones</h2>
+					<table style="right: -40%;top: 10%x;" class="list-group-item d-flex justify-content-between lh-sm">
+						<tr>
+							<th>Telefones</th>
+						</tr>
+						<tr th:each="telefone : ${telefone_lista}">
+							<td th:text="${telefone}"></td>
+							<td style="border:none">
+								<button class="btn btn-danger px-3">
+									<a style="text-decoration:none; color:black"
+										th:href="@{/cliente/editarPerfil/removeTelefone(cpf=${cliente_edit.id},telefone=${telefone})}">Excluir</a>
+								</button>
+							</td>
+						</tr>
+					</table>
+
+					<h2>Adicionar Telefone</h2>
+					<form th:action="@{/cliente/editarPerfil/addTelefone}" method="post">
+						<p hidden>
+							<input type="text" name="cpf" id="cpf" th:value="*{cliente_edit.cpf}" required /> <input
+								type="text" name="nome" id="nome" th:value="*{cliente_edit.nome}" /> <input type="email"
+								name="email" id="email" th:value="*{cliente_edit.email}" /> <input type="text"
+								name="senha" id="senha" th:value="*{cliente_edit.senha}" />
+						</p>
+						<p>
+							<label for="telefone">Telefone</label> <input type="tel" name="telefone"
+								th:field="*{cliente_edit.telefone[0]}" id="telefoneAdd" required />
+
+
+							<button type="submit">Adicionar</button>
+						</p>
+					</form>
+				</div>
+
+			</div>
+		</div>
+		<a class="btn btn-secondary rounded-pill px-3 my-2" th:href="@{~/.}">Voltar</a>
+	</div>
+</body>
+
+</html>

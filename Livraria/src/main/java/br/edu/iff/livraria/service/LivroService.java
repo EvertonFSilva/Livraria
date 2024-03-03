@@ -72,14 +72,4 @@ public class LivroService {
 	public List<Livro> listarLivros() {
 		return livroRepository.listarLivros();
 	}
-
-	public String adicionarLivro(Livro livro) {
-		Livro livroExistente = buscarPorTitulo(livro.getTitulo());
-		if (livroExistente != null) {
-			return "Livro já cadastrado.";
-		}
-
-		Livro novoLivro = livroRepository.saveAndFlush(livro);
-		return "Registrado no Id " + novoLivro.getId();
-	}
 }
