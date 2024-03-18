@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="UTF-8">
-	<div th:replace="~{base :: import}"></div>
+	<div th:replace="~{controle :: import}"></div>
 	<title>CRUD Cliente</title>
 </head>
 <style>
@@ -17,13 +17,13 @@
 
 <body>
 
-	<div th:replace="~{base :: header}"></div>
+	<div th:replace="~{controle :: header}"></div>
 	<div class="row">
 		<div class="sidebar border border-right col-md-3 col-lg-2 p-0 bg-body-tertiary">
 
 
-			<div th:replace="~{base :: sidebar}"></div>
-			<div th:replace="~{base :: icones}"></div>
+			<div th:replace="~{controle :: sidebar}"></div>
+			<div th:replace="~{controle :: icones}"></div>
 
 		</div>
 		<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
@@ -38,12 +38,12 @@
 					<fieldset>
 						<legend>Insira os valores</legend>
 						<p>
-							<label for="login">Login</label> <input type="text" name="login" id="login"
-								th:value="${cliente_add.getUsuario.getLogin}" required />
+							<label for="login">Login</label>
+							<input type="text" name="login" id="login" required />
 						</p>
 						<p>
-							<label for="senha">Senha</label> <input type="text" name="senha" id="senha"
-								th:value="${cliente_add.getUsuario.getSenha}" required />
+							<label for="senha">Senha</label>
+							<input type="text" name="senha" id="senha" required />
 						</p>
 						<p>
 							<label for="nome">Nome</label> <input type="text" name="nome" id="nome" th:field="*{nome}"
@@ -58,8 +58,12 @@
 								pattern="\d{11}" placeholder="00000000000" required />
 						</p>
 						<p>
-							<input type="tel" name="telefone" th:field="*{telefone[0]}" pattern="\d{9,11}"
+							<label for="cpf">Telefone</label> <input type="tel" name="telefone" th:field="*{telefones[0]}" pattern="\d{9,11}"
 								placeholder="0000000000" id="telefone" required />
+						</p>
+						<p>
+							<label for="endereco">Endereço</label> <input type="text" name="endereco" id="endereco" th:field="*{endereco}"
+								required />
 						</p>
 						<p>
 							<button type="submit">Registrar</button>
@@ -73,7 +77,7 @@
 			</div>
 
 			<div th:if="${cliente_lista != null}">
-				<h2>Buscar Cliente.</h2>
+				<h2>Buscar Cliente</h2>
 				<form th:action="@{/cliente/CRUD/buscaCPF}" method="post">
 					<p>
 						<label for="cpf">CPF</label> <input type="text" name="cpf" id="cpf" required />
@@ -82,23 +86,27 @@
 					</p>
 				</form>
 
-				<h1>Lista de Clientes.</h1>
+				<h1>Lista de Clientes</h1>
 				<table>
 					<tr>
 						<th>Id</th>
+						<th>Login</th>
+						<th>Senha</th>
 						<th>Nome</th>
 						<th>Email</th>
 						<th>CPF</th>
-						<th>Senha</th>
 						<th>Telefones</th>
+						<th>Endereço</th>
 					</tr>
 					<tr th:each="cliente : ${cliente_lista}" th:if="${cliente.cpf != null}">
 						<td th:text="${cliente.id}"></td>
+						<td th:text="${cliente.usuario.login}"></td>
+						<td th:text="${cliente.usuario.senha}"></td>
 						<td th:text="${cliente.nome}"></td>
 						<td th:text="${cliente.email}"></td>
 						<td th:text="${cliente.cpf}"></td>
-						<td th:text="${cliente.senha}"></td>
-						<td th:text="${#strings.listJoin(cliente.telefone, ', ')}"></td>
+						<td th:text="${#strings.listJoin(cliente.telefones, ', ')}"></td>
+						<td th:text="${cliente.endereco}"></td>
 						<td>
 							<button>
 								<a th:href="@{/cliente/CRUD/editar(id=${cliente.id})}">Editar</a>
@@ -117,20 +125,20 @@
 						document.getElementById('telefoneAdd').value = '';
 					});
 				</script>
-				<h1>Atualizar Cliente.</h1>
+				<h1>Atualizar Cliente</h1>
 				<form action="#" th:action="@{/cliente/CRUD/atualizar}" th:object="${cliente_edit}" method="post">
 					<fieldset>
 						<legend>Insira os valores</legend>
 						<p>
-							<label for="login">Novo Login</label> <input type="text" name="login" id="login"
-								th:value="${cliente_edit.getUsuario.getLogin}" required />
+							<label for="login">Novo Login</label>
+							<input type="text" name="login" id="login" required />
 						</p>
 						<p>
-							<label for="senha">Nova Senha</label> <input type="text" name="senha" id="senha"
-								th:value="${cliente_edit.getUsuario.getSenha}" required />
+							<label for="senha">Nova Senha</label>
+							<input type="text" name="senha" id="senha" required />
 						</p>
-						<p hidden>
-							<label for="cpf">CPF do Cliente</label> <input type="text" name="cpf" id="cpf"
+						<p>
+							<label for="cpf">Novo CPF do Cliente</label> <input type="text" name="cpf" id="cpf"
 								th:value="*{cpf}" required />
 						</p>
 						<p>
@@ -141,9 +149,9 @@
 							<label for="email">Novo Email</label> <input type="email" name="email" id="email"
 								th:value="*{email}" />
 						</p>
-						<p hidden>
+						<p>
 							<label for="telefone">Telefone:</label> <input type="tel" name="telefone"
-								th:field="*{telefone[0]}" id="telefone" required />
+								th:value="*{telefones[0]}" id="telefone" required />
 						</p>
 						<p>
 							<label for="enereco">Novo endereco</label> <input type="text" name="endereco" id="endereco"
@@ -173,16 +181,13 @@
 				</table>
 
 				<h2>Adicionar Telefone</h2>
-				<form th:action="@{/cliente/CRUD/addTelefone}" method="post">
+				<form th:action="@{/cliente/CRUD/addTelefone}" method="post" th:object="${cliente_edit}">
 					<p hidden>
-						<input type="text" name="cpf" id="cpf" th:value="*{cliente_edit.cpf}" required /> <input
-							type="text" name="nome" id="nome" th:value="*{cliente_edit.nome}" /> <input type="email"
-							name="email" id="email" th:value="*{cliente_edit.email}" /> <input type="text" name="senha"
-							id="senha" th:value="*{cliente_edit.senha}" />
+						<input type="text" name="cpf" id="cpf" th:value="*{cliente_edit.cpf}" required />
 					</p>
 					<p>
 						<label for="telefone">Telefone:</label> <input type="tel" name="telefone"
-							th:field="*{cliente_edit.telefone[0]}" id="telefoneAdd" pattern="\d{9,11}"
+							th:field="*{cliente_edit.telefones[0]}" id="telefoneAdd" pattern="\d{9,11}"
 							placeholder="0000000000" required />
 
 						<button type="submit">Adicionar</button>
