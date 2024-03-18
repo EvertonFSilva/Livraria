@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <script th:src="@{~/js/color-modes.js}"></script>
+    <script th:src="@{~/js/bootstrap.bundle.min.js}"></script>
+    <link th:href="@{~/css/bootstrap.min.css}" rel="stylesheet">
+    <title>Erro 500</title>
+</head>
+
+<body>
+
+    <div th:insert="~{base :: header}"></div>
+    <div style="text-align: center">
+        <h1>Erro interno inexperado</h1>
+        <h3>Erro 500</h3>
+        <a class="btn btn-secondary rounded-pill px-3 my-2" th:href="@{~/./}">Voltar à página inicial</a>
+    </div>
+</body>
+
+</html>

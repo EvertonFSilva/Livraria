@@ -37,13 +37,18 @@
 						</div>
 						<div th:unless="${#lists.isEmpty(cliente_lista)}">
 							<p>
-								<label for="cliente">Clientes:</label> <br /> <span
-									th:each="clienteAtual:${cliente_lista}"> <input type="radio" name="clienteEscolhido"
-										th:field="*{cliente}" th:value="${clienteAtual}" required /> Nome: <label
-										for="nome" th:text="${clienteAtual.nome}"></label> | CPF: <label for="cpf"
-										th:text="${clienteAtual.cpf}"></label><br />
+								<label for="cliente">Clientes:</label> <br />
+								<span th:each="clienteAtual : ${cliente_lista}">
+									<input type="radio" name="clienteEscolhido" th:value="${clienteAtual.id}"
+										required />
+									Nome: <span th:text="${clienteAtual.nome}"></span> | CPF: <span
+										th:text="${clienteAtual.cpf}"></span><br />
 								</span>
-
+							</p>
+							<p>
+								<label for="formaPagamento">Forma de Pagamento:</label>
+								<input type="text" name="formaPagamento" id="formaPagamento"
+									th:field="*{formaPagamento}" required />
 							</p>
 							<p>
 								<button type="submit">Registrar</button>

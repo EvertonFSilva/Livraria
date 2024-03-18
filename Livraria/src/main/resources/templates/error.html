@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Error</title>
+</head>
+<style>
+table, th, td {
+	border: 1px solid black;
+	text-align: center;
+}
+</style>
+<body>
+
+	<h1>Error</h1>
+	<table>
+		<tr>
+			<td>Data</td>
+			<td th:text="${timestamp}"></td>
+		</tr>
+		<tr>
+			<td>Path</td>
+			<td th:text="${path}"></td>
+		</tr>
+		<tr>
+			<td>Error</td>
+			<td th:text="${error}"></td>
+		</tr>
+		<tr>
+			<td>Status</td>
+			<td th:text="${status}"></td>
+		</tr>
+		<tr>
+			<td>Message</td>
+			<td th:text="${message}"></td>
+		</tr>
+		<tr>
+			<td>Exception</td>
+			<td th:text="${exception}"></td>
+		</tr>
+		<tr>
+			<td>Trace</td>
+			<td th:text="${trace}"></td>
+		</tr>
+		<tr th:if="${msgErros != null}">
+			<td>Mensagem error de exception expecífica</td>
+			<td th:text="${msgErros}"></td>
+		</tr>
+		<tr th:if="${mensagemErro != null}">
+			<td>Mensagem error de BindingResult</td>
+			<td th:text="${mensagemErro}"></td>
+		</tr>
+	</table>
+
+</body>
+</html>
