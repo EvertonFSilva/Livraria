@@ -20,6 +20,14 @@ public class ClienteService {
 	public Cliente buscarPorId(Long id) {
 		return clienteRepository.buscarPorId(id);
 	}
+	
+	public Cliente buscarPorCPF(String cpf) {
+		return clienteRepository.buscarPorCPF(cpf);
+	}
+	
+    public Cliente buscarPorLogin(String login) {
+        return clienteRepository.buscarPorLogin(login);
+    }
 
 	public String adicionarCliente(String login, String senha, String cpf, String nome, String email, String telefone,
 			String endereco) {

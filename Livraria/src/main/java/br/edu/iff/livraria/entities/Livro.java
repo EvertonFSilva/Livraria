@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
@@ -25,19 +26,23 @@ public class Livro implements Serializable {
 	@Column(unique = true, length = 60)
 	private String titulo;
 
+    @NotBlank(message = "O autor não pode estar em branco ou nulo")
 	@Size(min = 1, max = 60, message = "Tem que ter entre 1 e 60 caractéres")
 	@Column(length = 60)
 	private String autor;
 
+    @NotBlank(message = "O gênero não pode estar em branco ou nulo")
 	@Size(min = 1, max = 20, message = "Tem que ter entre 1 e 20 caractéres")
 	@Column(length = 20)
 	private String genero;
 
-	@Positive(message = "Tem que ser maior que 0")
+    @Positive(message = "A quantidade de páginas deve ser maior que zero")
+    @NotNull(message = "A quantidade de páginas não pode ser nula")
 	@Column(name = "qtd_paginas")
 	private int qtdPaginas;
 
-	@Positive(message = "Tem que ser maior que 0")
+    @Positive(message = "O preço deve ser maior que zero")
+    @NotNull(message = "O preço não pode ser nulo")
 	private float preco;
 
 	public Livro(String titulo, String autor, String genero, int qtdPaginas, float preco) {

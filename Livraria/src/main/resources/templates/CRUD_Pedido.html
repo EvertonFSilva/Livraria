@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<div th:replace="~{controle :: import}"></div>
+	<title>CRUD Pedido</title>
+</head>
+<style>
+	table,
+	th,
+	td {
+		border: 1px solid black;
+		text-align: center;
+	}
+</style>
+
+<body>
+
+	<div th:replace="~{controle :: header}"></div>
+	<div class="row">
+		<div class="sidebar border border-right col-md-3 col-lg-2 p-0 bg-body-tertiary">
+
+
+			<div th:replace="~{controle :: sidebar}"></div>
+			<div th:replace="~{controle :: icones}"></div>
+
+		</div>
+		<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+			<div th:if="${pedido_add != null}">
+				<h1>Registrar um novo pedido</h1>
+				<form action="#" th:action="@{/pedido/CRUD/add}" th:object="${pedido_add}" method="post">
+					<fieldset>
+						<legend>Escolha o cliente do Pedido</legend>
+						<div th:if="${#lists.isEmpty(cliente_lista)}">
+							<p>Nenhum cliente disponível no momento.</p>
+						</div>
+						<div th:unless="${#lists.isEmpty(cliente_lista)}">
+							<p>
+								<label for="cliente">Clientes:</label> <br /> <span
+									th:each="clienteAtual:${cliente_lista}"> <input type="radio" name="clienteEscolhido"
+										th:field="*{cliente}" th:value="${clienteAtual}" required /> Nome: <label
+										for="nome" th:text="${clienteAtual.nome}"></label> | CPF: <label for="cpf"
+										th:text="${clienteAtual.cpf}"></label><br />
+								</span>
+
+							</p>
+							<p>
+								<button type="submit">Registrar</button>
+							</p>
+						</div>
+
+					</fieldset>
+				</form>
+				<div th:if="${respostaAdd != null}">
+					<span th:text="${respostaAdd}"></span>
+				</div>
+
+			</div>
+
+			<div th:if="${pedido_lista != null}">
+				<h2>Buscar Pedido</h2>
+				<form th:action="@{/pedido/CRUD/buscaPedido}" method="post">
+					<p>
+						<label for="cpf">CPF do Cliente</label> <input type="text" name="cpf" id="cpf" required />
+
+						<button type="submit">Buscar</button>
+					</p>
+				</form>
+
+				<h1>Lista de todos os Pedidos</h1>
+				<table>
+					<tr>
+						<th>Id</th>
+						<th>Valor Total</th>
+						<th>Quantidade de Produtos</th>
+						<th>Está finalizado</th>
+					</tr>
+					<tr th:each="pedido : ${pedido_lista}" th:if="${pedido.cliente != null}">
+						<td th:text="${pedido.id}"></td>
+						<td th:text="${pedido.valorTotal}"></td>
+						<td th:text="${pedido.itens.size()}"></td>
+						<td th:text="${pedido.finalizado}"></td>
+						<td>
+							<button th:if="${pedido.finalizado}==false">
+								<a th:href="@{/pedido/CRUD/editar(id=${pedido.id})}">Editar</a>
+							</button>
+							<button>
+								<a th:href="@{/pedido/CRUD/deletar(id=${pedido.id})}">Excluir</a>
+							</button>
+							<button th:if="${pedido.finalizado}==false">
+								<a th:href="@{/pedido/CRUD/finalizar(id=${pedido.id})}">Finalizar</a>
+							</button>
+						</td>
+					</tr>
+				</table>
+				<table style="border: none">
+					<tr th:if="${respostaFinalizar != null}">
+						<td style="border: none" th:text="${respostaFinalizar}"></td>
+					</tr>
+				</table>
+			</div>
+
+			<div th:if="${pedido_edit != null &&!pedido_edit.finalizado}">
+				<h1>Atualizar Pedido</h1>
+				<form action="@{/pedido/CRUD/atualizar}" th:action="@{/pedido/CRUD/atualizar}"
+					th:object="${pedido_edit}" method="post">
+					<fieldset>
+						<legend>Insira os valores</legend>
+						<p hidden>
+							<label for="id">Id Pedido</label>
+							<input type="number" name="id" id="id" th:value="*{id}" required />
+						</p>
+						<p>
+							<label for="cpf">CPF do Cliente</label><br />
+							<span th:each="clienteAtual:${cliente_lista}">
+								<input type="radio" name="clienteId" th:value="${clienteAtual.id}"
+									th:checked="${clienteAtual.id == pedido_edit.cliente.id}" required />
+								Nome: <span th:text="${clienteAtual.nome}"></span> | CPF: <span
+									th:text="${clienteAtual.cpf}"></span><br />
+							</span>
+						</p>
+						<p>
+							<label for="valorTotal">Valor Total</label>
+							<input type="text" name="valorTotal" id="valorTotal" th:value="*{valorTotal}" required />
+						</p>
+						<p>
+							<label for="dataPedido">Data do Pedido</label>
+							<input type="datetime-local" name="dataPedido" id="dataPedido" th:value="*{dataPedido}"
+								required />
+						</p>
+						<p>
+							<label for="dataEntrega">Data de Entrega</label>
+							<input type="datetime-local" name="dataEntrega" id="dataEntrega" th:value="*{dataEntrega}"
+								required />
+						</p>
+						<p>
+							<label for="formaPagamento">Forma de Pagamento</label>
+							<input type="text" name="formaPagamento" id="formaPagamento" th:value="*{formaPagamento}"
+								required />
+						</p>
+						<p>
+							<button type="submit">Atualizar</button>
+						</p>
+					</fieldset>
+				</form>
+
+				<h2>Lista de Livros do Pedido</h2>
+				<table>
+					<tr>
+						<th>Id</th>
+						<th>Título</th>
+						<th>Autor</th>
+						<th>Gênero</th>
+						<th>Quantidade de Páginas</th>
+						<th>Preço</th>
+					</tr>
+					<tr th:each="livro : ${livro_lista}" th:if="${livro.titulo != null}">
+						<td th:text="${livro.id}"></td>
+						<td th:text="${livro.titulo}"></td>
+						<td th:text="${livro.autor}"></td>
+						<td th:text="${livro.genero}"></td>
+						<td th:text="${livro.qtdPaginas}"></td>
+						<td th:text="${livro.preco}"></td>
+						<td>
+							<button>
+								<a
+									th:href="@{/pedido/CRUD/deletarItem(id=${pedido_edit.id},titulo=${livro.titulo})}">Excluir</a>
+							</button>
+						</td>
+					</tr>
+				</table>
+				<h3>Adicionar Livro</h3>
+				<form th:action="@{/pedido/CRUD/addLivro}" method="post">
+					<p hidden>
+						<label for="id">Id Pedido</label> <input type="number" name="id" id="id"
+							th:value="*{pedido_edit.id}" required />
+					</p>
+					<p>
+						<label for="titulo">Titulo:</label> <input type="text" name="titulo" id="titulo" required />
+
+						<button type="submit">Adicionar</button>
+					</p>
+				</form>
+			</div>
+		</main>
+	</div>
+</body>
+
+</html>

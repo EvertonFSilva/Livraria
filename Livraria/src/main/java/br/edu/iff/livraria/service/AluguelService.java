@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -202,5 +203,20 @@ public class AluguelService {
 	public List<Item> listarItensDoAluguel(Long aluguelId) {
 		Aluguel aluguelExistente = buscarPorId(aluguelId);
 		return (aluguelExistente != null) ? aluguelExistente.getItens() : null;
+	}
+
+	public List<Livro> listarLivrosDoAluguel(Long aluguelId) {
+		List<Livro> listaLivros = new ArrayList<>();
+		Aluguel aluguel = buscarPorId(aluguelId);
+
+		if (aluguel != null && !aluguel.getItens().isEmpty()) {
+			for (Item item : aluguel.getItens()) {
+				Livro livro = item.getLivro();
+				if (livro != null) {
+					listaLivros.add(livro);
+				}
+			}
+		}
+		return listaLivros;
 	}
 }

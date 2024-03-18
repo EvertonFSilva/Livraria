@@ -20,6 +20,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 @Entity
@@ -35,12 +37,15 @@ public class Aluguel implements Serializable {
 	@JsonManagedReference
 	private List<Item> itens = new ArrayList<>();
 
+	@PositiveOrZero(message = "O valor total deve ser maior ou igual a 0")
 	private float valorTotal;
 
+	@NotNull(message = "A data de início não pode ser nula")
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "data_inicio")
 	private LocalDateTime dataInicio;
 
+	@NotNull(message = "A data de fim não pode ser nula")
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "data_fim")
 	private LocalDateTime dataFim;
@@ -49,8 +54,9 @@ public class Aluguel implements Serializable {
 	@Column(name = "data_entrega")
 	private LocalDateTime dataEntrega;
 
-	@NotBlank(message = "Tipo não pode ser em branco ou nulo")
-	@Size(min = 3, max = 30, message = "Tipo deve ter entre 3 e 30 caracteres")
+	@NotBlank(message = "A forma de pagamento não pode estar em branco ou nula")
+	@Size(min = 3, max = 30, message = "A forma de pagamento deve ter entre 3 e 30 caracteres")
+	@Column(name = "forma_pagamento")
 	private String formaPagamento;
 
 	@ManyToOne
@@ -87,11 +93,13 @@ public class Aluguel implements Serializable {
 
 	public void adicionarItem(Item item) {
 		this.itens.add(item);
+		this.valorTotal += item.getQuantidade() * item.getLivro().getPreco();
 		item.setAluguel(this);
 	}
 
 	public void removerItem(Item item) {
 		this.itens.remove(item);
+		this.valorTotal -= item.getQuantidade() * item.getLivro().getPreco();
 		item.setAluguel(null);
 	}
 

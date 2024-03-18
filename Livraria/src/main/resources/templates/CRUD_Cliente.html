@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<div th:replace="~{base :: import}"></div>
+	<title>CRUD Cliente</title>
+</head>
+<style>
+	table,
+	th,
+	td {
+		border: 1px solid black;
+		text-align: center;
+	}
+</style>
+
+<body>
+
+	<div th:replace="~{base :: header}"></div>
+	<div class="row">
+		<div class="sidebar border border-right col-md-3 col-lg-2 p-0 bg-body-tertiary">
+
+
+			<div th:replace="~{base :: sidebar}"></div>
+			<div th:replace="~{base :: icones}"></div>
+
+		</div>
+		<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+			<div th:if="${cliente_add != null}">
+				<script th:inline="javascript">
+					document.addEventListener('DOMContentLoaded', function () {
+						document.getElementById('cpfAdd').value = '';
+					});
+				</script>
+				<h1>Registrar Cliente</h1>
+				<form action="#" th:action="@{/cliente/CRUD/add}" th:object="${cliente_add}" method="post">
+					<fieldset>
+						<legend>Insira os valores</legend>
+						<p>
+							<label for="login">Login</label> <input type="text" name="login" id="login"
+								th:value="${cliente_add.getUsuario.getLogin}" required />
+						</p>
+						<p>
+							<label for="senha">Senha</label> <input type="text" name="senha" id="senha"
+								th:value="${cliente_add.getUsuario.getSenha}" required />
+						</p>
+						<p>
+							<label for="nome">Nome</label> <input type="text" name="nome" id="nome" th:field="*{nome}"
+								required />
+						</p>
+						<p>
+							<label for="email">Email</label> <input type="email" name="email" id="email"
+								th:field="*{email}" required />
+						</p>
+						<p>
+							<label for="cpf">CPF</label> <input type="text" name="cpf" id="cpfAdd" th:field="*{cpf}"
+								pattern="\d{11}" placeholder="00000000000" required />
+						</p>
+						<p>
+							<input type="tel" name="telefone" th:field="*{telefone[0]}" pattern="\d{9,11}"
+								placeholder="0000000000" id="telefone" required />
+						</p>
+						<p>
+							<button type="submit">Registrar</button>
+						</p>
+					</fieldset>
+				</form>
+				<div th:if="${respostaAdd != null}">
+					<span th:text="${respostaAdd}"></span>
+				</div>
+
+			</div>
+
+			<div th:if="${cliente_lista != null}">
+				<h2>Buscar Cliente.</h2>
+				<form th:action="@{/cliente/CRUD/buscaCPF}" method="post">
+					<p>
+						<label for="cpf">CPF</label> <input type="text" name="cpf" id="cpf" required />
+
+						<button type="submit">Buscar</button>
+					</p>
+				</form>
+
+				<h1>Lista de Clientes.</h1>
+				<table>
+					<tr>
+						<th>Id</th>
+						<th>Nome</th>
+						<th>Email</th>
+						<th>CPF</th>
+						<th>Senha</th>
+						<th>Telefones</th>
+					</tr>
+					<tr th:each="cliente : ${cliente_lista}" th:if="${cliente.cpf != null}">
+						<td th:text="${cliente.id}"></td>
+						<td th:text="${cliente.nome}"></td>
+						<td th:text="${cliente.email}"></td>
+						<td th:text="${cliente.cpf}"></td>
+						<td th:text="${cliente.senha}"></td>
+						<td th:text="${#strings.listJoin(cliente.telefone, ', ')}"></td>
+						<td>
+							<button>
+								<a th:href="@{/cliente/CRUD/editar(id=${cliente.id})}">Editar</a>
+							</button>
+							<button>
+								<a th:href="@{/cliente/CRUD/deletePorCPF(cpf=${cliente.cpf})}">Excluir</a>
+							</button>
+						</td>
+					</tr>
+				</table>
+			</div>
+
+			<div th:if="${cliente_edit != null}">
+				<script th:inline="javascript">
+					document.addEventListener('DOMContentLoaded', function () {
+						document.getElementById('telefoneAdd').value = '';
+					});
+				</script>
+				<h1>Atualizar Cliente.</h1>
+				<form action="#" th:action="@{/cliente/CRUD/atualizar}" th:object="${cliente_edit}" method="post">
+					<fieldset>
+						<legend>Insira os valores</legend>
+						<p>
+							<label for="login">Novo Login</label> <input type="text" name="login" id="login"
+								th:value="${cliente_edit.getUsuario.getLogin}" required />
+						</p>
+						<p>
+							<label for="senha">Nova Senha</label> <input type="text" name="senha" id="senha"
+								th:value="${cliente_edit.getUsuario.getSenha}" required />
+						</p>
+						<p hidden>
+							<label for="cpf">CPF do Cliente</label> <input type="text" name="cpf" id="cpf"
+								th:value="*{cpf}" required />
+						</p>
+						<p>
+							<label for="nome">Novo Nome</label> <input type="text" name="nome" id="nome"
+								th:value="*{nome}" />
+						</p>
+						<p>
+							<label for="email">Novo Email</label> <input type="email" name="email" id="email"
+								th:value="*{email}" />
+						</p>
+						<p hidden>
+							<label for="telefone">Telefone:</label> <input type="tel" name="telefone"
+								th:field="*{telefone[0]}" id="telefone" required />
+						</p>
+						<p>
+							<label for="enereco">Novo endereco</label> <input type="text" name="endereco" id="endereco"
+								th:value="*{endereco}" />
+						</p>
+						<p>
+							<button type="submit">Atualizar</button>
+						</p>
+
+					</fieldset>
+				</form>
+
+				<h2>Lista de Telefones</h2>
+				<table>
+					<tr>
+						<th>Telefones</th>
+					</tr>
+					<tr th:each="telefone : ${telefone_lista}">
+						<td th:text="${telefone}"></td>
+						<td>
+							<button>
+								<a
+									th:href="@{/cliente/CRUD/removeTelefone(cpf=${cliente_edit.cpf},telefone=${telefone})}">Excluir</a>
+							</button>
+						</td>
+					</tr>
+				</table>
+
+				<h2>Adicionar Telefone</h2>
+				<form th:action="@{/cliente/CRUD/addTelefone}" method="post">
+					<p hidden>
+						<input type="text" name="cpf" id="cpf" th:value="*{cliente_edit.cpf}" required /> <input
+							type="text" name="nome" id="nome" th:value="*{cliente_edit.nome}" /> <input type="email"
+							name="email" id="email" th:value="*{cliente_edit.email}" /> <input type="text" name="senha"
+							id="senha" th:value="*{cliente_edit.senha}" />
+					</p>
+					<p>
+						<label for="telefone">Telefone:</label> <input type="tel" name="telefone"
+							th:field="*{cliente_edit.telefone[0]}" id="telefoneAdd" pattern="\d{9,11}"
+							placeholder="0000000000" required />
+
+						<button type="submit">Adicionar</button>
+					</p>
+				</form>
+			</div>
+		</main>
+	</div>
+</body>
+
+</html>

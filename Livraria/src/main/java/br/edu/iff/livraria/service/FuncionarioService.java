@@ -21,6 +21,14 @@ public class FuncionarioService {
 		return funcionarioRepository.buscarPorId(id);
 	}
 
+	public Funcionario buscarPorCPF(String cpf) {
+		return funcionarioRepository.buscarPorCPF(cpf);
+	}
+
+    public Funcionario buscarPorLogin(String login) {
+        return funcionarioRepository.buscarPorLogin(login);
+    }
+
 	public String adicionarFuncionario(String login, String senha, String cpf, String nome, String email,
 			String telefone, String endereco, String cargo, float salario) {
 		Funcionario funcionarioExistente = funcionarioRepository.buscarPorCPF(cpf);
