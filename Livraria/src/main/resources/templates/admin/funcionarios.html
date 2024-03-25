@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head
+	th:replace="layout_base :: head('Livraria - Painel dos Funcionários')"></head>
+<body>
+	<nav th:replace="layout_base :: navbar"></nav>
+
+	<div class="container mt-5 mb-5">
+		<div th:fragment="funcionarios">
+			<h2 class="text-center mb-4">Funcionários</h2>
+			<input type="text" id="filtroNome" class="form-control mb-3"
+				placeholder="Filtrar por nome..." onkeyup="filtrarFuncionarios()"
+				oninput="capitalizeFirstLetter(this)">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Login</th>
+						<th>Senha</th>
+						<th>CPF</th>
+						<th>Nome</th>
+						<th>Email</th>
+						<th>Telefone</th>
+						<th>Endereço</th>
+						<th>Cargo</th>
+						<th>Salário</th>
+						<th>Ações</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="funcionario : ${funcionarios}">
+						<td th:text="${funcionario.id}"></td>
+						<td th:text="${funcionario.usuario.login}"></td>
+						<td th:text="${funcionario.usuario.senha}"></td>
+						<td th:text="${funcionario.cpf}"></td>
+						<td th:text="${funcionario.nome}"></td>
+						<td th:text="${funcionario.email}"></td>
+						<td>
+							<ul>
+								<li th:each="telefone : ${funcionario.telefones}"
+									th:text="${telefone}"></li>
+							</ul>
+						</td>
+						<td th:text="${funcionario.endereco}"></td>
+						<td th:text="${funcionario.cargo}"></td>
+						<td th:text="${funcionario.salario}"></td>
+						<td>
+							<button class="btn btn-secondary btn-sm mb-2"
+								th:attr="onclick='openEditForm(\'' + ${funcionario.id} + '\', \'' + ${funcionario.usuario.login} + '\', \'' + ${funcionario.usuario.senha} + '\', \'' + ${funcionario.cpf} + '\', \'' + ${funcionario.nome} + '\', \'' + ${funcionario.email} + '\', \'' + ${funcionario.telefones[0]} + '\', \'' + ${funcionario.endereco} + '\', \'' + ${funcionario.cargo} + '\', \'' + ${funcionario.salario} + '\')'">Editar</button>
+							<button class="btn btn-danger btn-sm"
+								th:attr="onclick='confirmDelete(\'' + ${funcionario.id} + '\')'">Excluir</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<button class="btn btn-success" onclick="openAddForm()">Adicionar
+				Funcionário</button>
+		</div>
+	</div>
+
+	<div id="addForm" class="popup-form" style="display: none;">
+		<form th:action="@{/funcionario/adicionar}" method="post">
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<label for="addLogin">Login:</label> <input type="text"
+						class="form-control" id="addLogin" name="login" required
+						oninput="capitalizeFirstLetter(this)" />
+				</div>
+				<div class="form-group col-md-6">
+					<label for="addSenha">Senha:</label> <input type="text"
+						class="form-control" id="addSenha" name="senha" required />
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<label for="addCpf">CPF:</label> <input type="text"
+						class="form-control" id="addCpf" name="cpf" required />
+				</div>
+				<div class="form-group col-md-6">
+					<label for="addNome">Nome:</label> <input type="text"
+						class="form-control" id="addNome" name="nome" required
+						oninput="capitalizeFirstLetter(this)" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="addEmail">Email:</label> <input type="email"
+					class="form-control" id="addEmail" name="email" required />
+			</div>
+			<div class="form-group">
+				<label for="addTelefone">Telefone:</label> <input type="tel"
+					class="form-control" id="addTelefone" name="telefone" required />
+			</div>
+			<div class="form-group">
+				<label for="addEndereco">Endereço:</label> <input type="text"
+					class="form-control" id="addEndereco" name="endereco" required />
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<label for="addCargo">Cargo:</label> <input type="text"
+						class="form-control" id="addCargo" name="cargo" required />
+				</div>
+				<div class="form-group col-md-6">
+					<label for="addSalario">Salário:</label> <input type="number"
+						class="form-control" id="addSalario" name="salario" required />
+				</div>
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Adicionar
+				Funcionário</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeAddForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="editForm" class="popup-form" style="display: none;">
+		<form th:action="@{/funcionario/editar}" method="post">
+			<input type="hidden" id="editFuncionarioId" name="id" />
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<label for="editLogin">Login:</label> <input type="text"
+						class="form-control" id="editLogin" name="login" required
+						oninput="capitalizeFirstLetter(this)" />
+				</div>
+				<div class="form-group col-md-6">
+					<label for="editSenha">Senha:</label> <input type="text"
+						class="form-control" id="editSenha" name="senha" required />
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<label for="editCpf">CPF:</label> <input type="text"
+						class="form-control" id="editCpf" name="cpf" required />
+				</div>
+				<div class="form-group col-md-6">
+					<label for="editNome">Nome:</label> <input type="text"
+						class="form-control" id="editNome" name="nome" required
+						oninput="capitalizeFirstLetter(this)" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="editEmail">Email:</label> <input type="email"
+					class="form-control" id="editEmail" name="email" required />
+			</div>
+			<div class="form-group">
+				<label for="editTelefone">Telefone:</label> <input type="tel"
+					class="form-control" id="editTelefone" name="telefone" required />
+			</div>
+			<div class="form-group">
+				<label for="editEndereco">Endereço:</label> <input type="text"
+					class="form-control" id="editEndereco" name="endereco" required />
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<label for="editCargo">Cargo:</label> <input type="text"
+						class="form-control" id="editCargo" name="cargo" required />
+				</div>
+				<div class="form-group col-md-6">
+					<label for="editSalario">Salário:</label> <input type="number"
+						class="form-control" id="editSalario" name="salario" required />
+				</div>
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Salvar
+				Alterações</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeEditForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="confirmDeleteForm" class="popup-form" style="display: none;">
+		<form th:action="@{/funcionario/deletar}" method="post">
+			<input type="hidden" id="id" name="id" />
+			<p>Deseja realmente excluir este funcionário?</p>
+			<div class="text-center">
+				<button type="submit" class="btn btn-success mr-2">Sim</button>
+				<button type="button" class="btn btn-danger"
+					onclick="cancelDelete()">Não</button>
+			</div>
+		</form>
+	</div>
+
+	<footer th:replace="layout_base :: footer"></footer>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+
+	<script>
+		function capitalizeFirstLetter(input) {
+			var name = input.value.trim();
+			if (name !== "") {
+				var correctedName = name.charAt(0).toUpperCase()
+						+ name.slice(1).toLowerCase();
+				input.value = correctedName;
+			}
+		}
+
+		function openAddForm() {
+			var addForm = document.getElementById("addForm");
+			addForm.style.display = "block";
+		}
+
+		function closeAddForm() {
+			var addForm = document.getElementById("addForm");
+			addForm.style.display = "none";
+		}
+
+		function openEditForm(id, login, senha, cpf, nome, email, telefone,
+				endereco, cargo, salario) {
+			var editForm = document.getElementById("editForm");
+			editForm.style.display = "block";
+
+			var editFormElement = editForm.querySelector("form");
+			editFormElement.querySelector("#editFuncionarioId").value = id;
+			editFormElement.querySelector("#editLogin").value = login;
+			editFormElement.querySelector("#editSenha").value = senha;
+			editFormElement.querySelector("#editCpf").value = cpf;
+			editFormElement.querySelector("#editNome").value = nome;
+			editFormElement.querySelector("#editEmail").value = email;
+			editFormElement.querySelector("#editTelefone").value = telefone;
+			editFormElement.querySelector("#editEndereco").value = endereco;
+			editFormElement.querySelector("#editCargo").value = cargo;
+			editFormElement.querySelector("#editSalario").value = salario;
+		}
+
+		function closeEditForm() {
+			var editForm = document.getElementById("editForm");
+			editForm.style.display = "none";
+		}
+
+		function confirmDelete(id) {
+			var confirmDeleteForm = document
+					.getElementById("confirmDeleteForm");
+			confirmDeleteForm.style.display = "block";
+			document.getElementById("id").value = id;
+		}
+
+		function cancelDelete() {
+			var confirmDeleteForm = document
+					.getElementById("confirmDeleteForm");
+			confirmDeleteForm.style.display = "none";
+		}
+
+		function filtrarFuncionarios() {
+			var input, filter, table, tr, td, i, txtValue;
+			input = document.getElementById("filtroNome");
+			filter = input.value.toUpperCase();
+			table = document.querySelector("table");
+			tr = table.getElementsByTagName("tr");
+			for (i = 0; i < tr.length; i++) {
+				td = tr[i].getElementsByTagName("td")[4];
+				if (td) {
+					txtValue = td.textContent || td.innerText;
+					if (txtValue.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+					} else {
+						tr[i].style.display = "none";
+					}
+				}
+			}
+		}
+	</script>
+
+	<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+
+.popup-form {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 9999;
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+	width: 80%;
+	max-width: 400px;
+}
+</style>
+</body>
+</html>

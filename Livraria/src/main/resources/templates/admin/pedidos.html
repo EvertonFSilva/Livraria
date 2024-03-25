@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout_base :: head('Livraria - Painel dos Pedidos')"></head>
+<body>
+	<nav th:replace="layout_base :: navbar"></nav>
+
+	<div class="container mt-5 mb-5">
+		<div th:fragment="pedidos">
+			<h2 class="text-center mb-4">Pedidos</h2>
+			<input type="text" id="filtroPedido" class="form-control mb-3"
+				placeholder="Filtrar por cliente..." onkeyup="filtrarPedidos()"
+				oninput="capitalizeFirstLetter(this)">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Data do Pedido</th>
+						<th>Cliente</th>
+						<th>Itens</th>
+						<th>Valor Total</th>
+						<th>Status</th>
+						<th>Ações</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="pedido : ${pedidos}">
+						<td th:text="${pedido.id}"></td>
+						<td
+							th:text="${#temporals.format(pedido.dataPedido, 'dd-MM-yyyy HH:mm')}"></td>
+						<td th:text="${pedido.cliente.nome}"></td>
+						<td>
+							<ul>
+								<li th:each="item : ${pedido.itens}"><span
+									th:text="${item.livro.titulo} + ' x ' + ${item.quantidade}"></span>
+									<span> <i class="fas fa-edit"
+										style="cursor: pointer; color: black;"
+										th:attr="onclick='openEditItemForm(\'' + ${pedido.id} + '\', \'' + ${item.id} + '\', \'' + ${item.livro.id} + '\', \'' + ${item.quantidade} + '\')'"
+										onmouseover="this.style.color='blue'"
+										onmouseout="this.style.color='black'"> </i> <i
+										class="fas fa-trash-alt"
+										style="cursor: pointer; color: black;"
+										th:attr="onclick='openDeleteItemForm(\'' + ${pedido.id} + '\', \'' + ${item.id} + '\')'"
+										onmouseover="this.style.color='blue'"
+										onmouseout="this.style.color='black'"> </i>
+								</span></li>
+							</ul>
+						</td>
+						<td th:text="${pedido.valorTotal}"></td>
+						<td th:text="${pedido.finalizado ? 'Finalizado' : 'Em Progresso'}"></td>
+						<td>
+							<button class="btn btn-secondary btn-sm"
+								th:attr="onclick='openEditPedidoForm(\'' + ${pedido.id} + '\', \'' + ${pedido.cliente.id} + '\', \'' + ${pedido.valorTotal} + '\', \'' + ${#temporals.format(pedido.dataPedido, 'yyyy-MM-dd HH:mm')} + '\', \'' + ${#temporals.format(pedido.dataEntrega, 'yyyy-MM-dd HH:mm')} + '\', \'' + ${pedido.formaPagamento} + '\', \'' + ${pedido.finalizado} + '\')'">Editar</button>
+							<button class="btn btn-danger btn-sm"
+								th:attr="onclick='confirmDeletePedido(\'' + ${pedido.id} + '\')'">Excluir</button>
+							<button class="btn btn-success btn-sm"
+								th:attr="onclick='openAddItemForm(\'' + ${pedido.id} + '\')'">Adicionar
+								Item</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<button class="btn btn-success" onclick="openAddPedidoForm()">Adicionar
+				Pedido</button>
+			<div th:if="${mensagem}" class="popup-message">
+				<p th:text="${mensagem}" class="text-center"></p>
+				<button type="button" class="btn btn-primary btn-sm mt-3"
+					onclick="closePopupMessage()">Fechar</button>
+			</div>
+		</div>
+	</div>
+
+	<div id="addPedidoForm" class="popup-form" style="display: none;">
+		<form th:action="@{/pedido/admin/adicionar}" method="post">
+			<div class="form-group">
+				<label for="clienteId">Cliente ID:</label> <input type="number"
+					name="clienteId" id="clienteId" class="form-control" min="1"
+					required />
+				<button type="button" class="btn btn-info mt-3"
+					onclick="openClienteListPopup()">Selecionar Cliente</button>
+			</div>
+			<div class="form-group">
+				<label for="formaPagamento">Forma de Pagamento:</label> <select
+					class="form-control" id="formaPagamento" name="formaPagamento">
+					<option value="PIX">PIX</option>
+					<option value="CARTÃO">Cartão</option>
+					<option value="BOLETO">Boleto</option>
+				</select>
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Adicionar
+				Pedido</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeAddPedidoForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="editPedidoForm" class="popup-form" style="display: none;">
+		<form th:action="@{/pedido/admin/editar}" method="post">
+			<input type="hidden" name="pedidoId" id="pedidoId" /> <input
+				type="hidden" name="clienteId" id="clienteId" />
+			<div class="form-group">
+				<label for="valorTotal">Valor Total:</label> <input type="number"
+					id="valorTotal" name="valorTotal" class="form-control" min="1"
+					required />
+			</div>
+			<div class="form-group">
+				<label for="dataPedido">Data do Pedido:</label> <input
+					type="datetime-local" id="dataPedido" name="dataPedido"
+					class="form-control" required />
+			</div>
+			<div class="form-group">
+				<label for="dataEntrega">Data de Entrega:</label> <input
+					type="datetime-local" id="dataEntrega" name="dataEntrega"
+					class="form-control" required />
+			</div>
+			<div class="form-group">
+				<label for="formaPagamento">Forma de Pagamento:</label> <select
+					class="form-control" id="formaPagamento" name="formaPagamento">
+					<option value="PIX">PIX</option>
+					<option value="CARTÃO">Cartão</option>
+					<option value="BOLETO">Boleto</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<label for="status">Status:</label> <select class="form-control"
+					id="status" name="status">
+					<option value="true">Finalizado</option>
+					<option value="false">Em Progresso</option>
+				</select>
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Salvar
+				Alterações</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeEditPedidoForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="confirmDeletePedidoForm" class="popup-form"
+		style="display: none;">
+		<form th:action="@{/pedido/admin/deletar}" method="post">
+			<input type="hidden" name="pedidoId" id="pedidoId" />
+			<p>Deseja realmente excluir este pedido?</p>
+			<div class="text-center">
+				<button type="submit" class="btn btn-success mr-2">Sim</button>
+				<button type="button" class="btn btn-danger"
+					onclick="cancelDeletePedido()">Não</button>
+			</div>
+		</form>
+	</div>
+
+	<div id="addItemForm" class="popup-form" style="display: none;">
+		<form th:action="@{/pedido/admin/adicionarItem}" method="post">
+			<input type="hidden" name="pedidoId" id="pedidoId" />
+			<div class="form-group">
+				<label for="livroId">Livro ID:</label> <input type="number"
+					id="livroId" name="livroId" class="form-control" min="1" required />
+				<button type="button" class="btn btn-info mt-3"
+					onclick="openLivroListPopup(1)">Selecionar Livro</button>
+			</div>
+			<div class="form-group">
+				<label for="quantidade">Quantidade:</label> <input type="number"
+					id="quantidade" name="quantidade" class="form-control" value="1"
+					min="1" required />
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Adicionar
+				Item</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeAddItemForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="deleteItemForm" class="popup-form" style="display: none;">
+		<form th:action="@{/pedido/admin/deletarItem}" method="post">
+			<input type="hidden" name="pedidoId" id="pedidoId" /> <input
+				type="hidden" name="itemId" id="itemId" />
+			<p>Deseja realmente excluir este item do pedido?</p>
+			<div class="text-center">
+				<button type="submit" class="btn btn-success mr-2">Sim</button>
+				<button type="button" class="btn btn-danger"
+					onclick="cancelDeleteItem()">Não</button>
+			</div>
+		</form>
+	</div>
+
+	<div id="editItemForm" class="popup-form" style="display: none;">
+		<form th:action="@{/pedido/admin/editarItem}" method="post">
+			<input type="hidden" name="pedidoId" id="pedidoId" /> <input
+				type="hidden" name="itemId" id="itemId" />
+			<div class="form-group">
+				<label for="livroId">Novo Livro ID:</label> <input type="number"
+					name="livroId" id="livroId" class="form-control" min="1" required />
+				<button type="button" class="btn btn-info mt-3"
+					onclick="openLivroListPopup(2)">Selecionar Livro</button>
+			</div>
+			<div class="form-group">
+				<label for="novaQuantidade">Nova Quantidade:</label> <input
+					type="number" id="novaQuantidade" name="novaQuantidade"
+					class="form-control" required />
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Salvar
+				Alterações</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeEditItemForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="clienteListPopup" class="popup-form" style="display: none;">
+		<h3>Lista de Clientes</h3>
+		<input type="text" id="filtroNome" class="form-control mb-3"
+			placeholder="Filtrar por nome..." onkeyup="filtrarClientes()"
+			oninput="capitalizeFirstLetter(this)">
+		<table class="table">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Nome</th>
+					<th>Ação</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="cliente : ${clientes}">
+					<td th:text="${cliente.id}"></td>
+					<td th:text="${cliente.nome}"></td>
+					<td>
+						<button type="button" class="btn btn-info"
+							th:attr="onclick='selecionarCliente(\'' + ${cliente.id} + '\')'">Selecionar</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<button type="button" class="btn btn-danger btn-block"
+			onclick="closeClienteListPopup()">Fechar</button>
+	</div>
+
+	<div id="livroListPopup" class="popup-form" style="display: none;">
+		<h3>Lista de Livros</h3>
+		<input type="text" id="filtroTitulo" class="form-control mb-3"
+			placeholder="Filtrar por título..." onkeyup="filtrarLivros()">
+		<table class="table">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Titulo</th>
+					<th>Preço</th>
+					<th>Ação</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="livro : ${livros}">
+					<td th:text="${livro.id}"></td>
+					<td th:text="${livro.titulo}"></td>
+					<td th:text="${livro.preco}"></td>
+					<td>
+						<button type="button" class="btn btn-info"
+							th:attr="onclick='selecionarLivro(\'' + ${livro.id} + '\')'">Selecionar</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<button type="button" class="btn btn-danger btn-block"
+			onclick="closeLivroListPopup()">Fechar</button>
+	</div>
+
+	<footer th:replace="layout_base :: footer"></footer>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+	
+	<script>
+		function capitalizeFirstLetter(input) {
+			var name = input.value.trim();
+			if (name !== "") {
+				var correctedName = name.charAt(0).toUpperCase()
+						+ name.slice(1).toLowerCase();
+				input.value = correctedName;
+			}
+		}
+		function openAddPedidoForm() {
+			var addPedidoForm = document.getElementById("addPedidoForm");
+			addPedidoForm.style.display = "block";
+		}
+
+		function closeAddPedidoForm() {
+			var addPedidoForm = document.getElementById("addPedidoForm");
+			addPedidoForm.style.display = "none";
+		}
+
+		function openAddItemForm(pedidoId) {
+			var addItemForm = document.getElementById("addItemForm");
+			addItemForm.style.display = "block";
+
+			var addFormElement = addItemForm.querySelector("form");
+			addFormElement.querySelector("#pedidoId").value = pedidoId;
+		}
+
+		function closeAddItemForm() {
+			var addItemForm = document.getElementById("addItemForm");
+			addItemForm.style.display = "none";
+		}
+
+		function openDeleteItemForm(pedidoId, itemId) {
+			var deleteItemForm = document.getElementById("deleteItemForm");
+			deleteItemForm.style.display = "block";
+
+			var deleteFormElement = deleteItemForm.querySelector("form");
+			deleteFormElement.querySelector("#pedidoId").value = pedidoId;
+			deleteFormElement.querySelector("#itemId").value = itemId;
+		}
+
+		function cancelDeleteItem() {
+			var deleteItemForm = document.getElementById("deleteItemForm");
+			deleteItemForm.style.display = "none";
+		}
+
+		function openEditItemForm(pedidoId, itemId, livroId, quantidade) {
+			var editItemForm = document.getElementById("editItemForm");
+			editItemForm.style.display = "block";
+
+			var editFormElement = editItemForm.querySelector("form");
+			editFormElement.querySelector("#pedidoId").value = pedidoId;
+			editFormElement.querySelector("#itemId").value = itemId;
+			editFormElement.querySelector("#livroId").value = livroId;
+			editFormElement.querySelector("#novaQuantidade").value = quantidade;
+		}
+
+		function closeEditItemForm() {
+			var editItemForm = document.getElementById("editItemForm");
+			editItemForm.style.display = "none";
+		}
+
+		function openEditPedidoForm(pedidoId, clienteId, valorTotal,
+				dataPedido, dataEntrega, formaPagamento, status) {
+			var editPedidoForm = document.getElementById("editPedidoForm");
+			editPedidoForm.style.display = "block";
+
+			var editFormElement = editPedidoForm.querySelector("form");
+			editFormElement.querySelector("#pedidoId").value = pedidoId;
+			editFormElement.querySelector("#clienteId").value = clienteId;
+			editFormElement.querySelector("#valorTotal").value = valorTotal;
+			editFormElement.querySelector("#dataPedido").value = dataPedido;
+			editFormElement.querySelector("#dataEntrega").value = dataEntrega;
+			editFormElement.querySelector("#formaPagamento").value = formaPagamento;
+			editFormElement.querySelector("#status").value = status;
+		}
+
+		function closeEditPedidoForm() {
+			var editPedidoForm = document.getElementById("editPedidoForm");
+			editPedidoForm.style.display = "none";
+		}
+
+		function confirmDeletePedido(pedidoId) {
+			var confirmDeletePedidoForm = document
+					.getElementById("confirmDeletePedidoForm");
+			confirmDeletePedidoForm.style.display = "block";
+
+			var deleteFormElement = confirmDeletePedidoForm
+					.querySelector("form");
+			deleteFormElement.querySelector("#pedidoId").value = pedidoId;
+		}
+
+		function cancelDeletePedido() {
+			var confirmDeletePedidoForm = document
+					.getElementById("confirmDeletePedidoForm");
+			confirmDeletePedidoForm.style.display = "none";
+		}
+
+		function openClienteListPopup() {
+			var clienteListPopup = document.getElementById("clienteListPopup");
+			clienteListPopup.style.display = "block";
+		}
+
+		function closeClienteListPopup() {
+			var clienteListPopup = document.getElementById("clienteListPopup");
+			clienteListPopup.style.display = "none";
+		}
+
+		function openLivroListPopup(livroPopup) {
+			var livroListPopup = document.getElementById("livroListPopup");
+			livroListPopup.style.display = "block";
+
+			var selecionarLivroButton = document
+					.querySelector("#livroListPopup button");
+			selecionarLivroButton.dataset.livroPopup = livroPopup;
+		}
+
+		function closeLivroListPopup() {
+			var livroListPopup = document.getElementById("livroListPopup");
+			livroListPopup.style.display = "none";
+		}
+
+		function selecionarCliente(clienteId) {
+			var addPedidoForm = document.getElementById("addPedidoForm");
+			var addFormElement = addPedidoForm.querySelector("form");
+			addFormElement.querySelector("#clienteId").value = clienteId;
+			closeClienteListPopup();
+		}
+
+		function selecionarLivro(livroId) {
+			var livroPopup = document.querySelector("#livroListPopup button").dataset.livroPopup;
+			var itemForm = null;
+			if (livroPopup == 1) {
+				itemForm = document.getElementById("addItemForm");
+			} else {
+				itemForm = document.getElementById("editItemForm");
+			}
+			var addFormElement = itemForm.querySelector("form");
+			addFormElement.querySelector("#livroId").value = livroId;
+			closeLivroListPopup();
+		}
+
+		function filtrarPedidos() {
+			var input, filter, table, tr, td, i, txtValue;
+			input = document.getElementById("filtroPedido");
+			filter = input.value.toUpperCase();
+			table = document.querySelector(".table");
+			tr = table.getElementsByTagName("tr");
+			for (i = 0; i < tr.length; i++) {
+				td = tr[i].getElementsByTagName("td")[2];
+				if (td) {
+					txtValue = td.textContent || td.innerText;
+					if (txtValue.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+					} else {
+						tr[i].style.display = "none";
+					}
+				}
+			}
+		}
+
+		function filtrarClientes() {
+			var input, filter, table, tr, td, i, txtValue;
+			input = document.getElementById("filtroNome");
+			filter = input.value.toUpperCase();
+			table = document.getElementById("clienteListPopup");
+			tr = table.getElementsByTagName("tr");
+			for (i = 0; i < tr.length; i++) {
+				td = tr[i].getElementsByTagName("td")[1];
+				if (td) {
+					txtValue = td.textContent || td.innerText;
+					if (txtValue.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+					} else {
+						tr[i].style.display = "none";
+					}
+				}
+			}
+		}
+
+		function filtrarLivros() {
+			var input, filter, table, tr, td, i, txtValue;
+			input = document.getElementById("filtroTitulo");
+			filter = input.value.toUpperCase();
+			table = document.getElementById("livroListPopup");
+			tr = table.getElementsByTagName("tr");
+			for (i = 0; i < tr.length; i++) {
+				td = tr[i].getElementsByTagName("td")[1];
+				if (td) {
+					txtValue = td.textContent || td.innerText;
+					if (txtValue.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+					} else {
+						tr[i].style.display = "none";
+					}
+				}
+			}
+		}
+
+		function closePopupMessage() {
+			var popupMessage = document.querySelector('.popup-message');
+			popupMessage.style.display = 'none';
+
+			var urlWithoutParams = window.location.origin
+					+ window.location.pathname;
+			window.history.replaceState({}, document.title, urlWithoutParams);
+			window.location.reload();
+		}
+	</script>
+
+	<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+
+.popup-form {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 9999;
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+	width: 80%;
+	max-width: 400px;
+	max-height: 80vh;
+	overflow-y: auto;
+}
+
+.popup-message {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 9999;
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+}
+
+.popup-form table {
+	width: 100%;
+}
+
+.popup-form table th, .popup-form table td {
+	padding: 8px;
+	text-align: left;
+}
+</style>
+</body>
+</html>

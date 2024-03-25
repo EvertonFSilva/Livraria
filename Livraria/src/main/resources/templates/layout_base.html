@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head(title)">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title th:text="${title}">Livraria</title>
+<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+<link
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+	rel="stylesheet">
+</head>
+
+<body>
+	<nav th:fragment="navbar"
+		class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+		<div class="container">
+			<a class="navbar-brand" th:href="@{/}"><i
+				class="fas fa-book-open"></i> Livraria</a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse"
+				data-target="#navbarNav" aria-controls="navbarNav"
+				aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse justify-content-end"
+				id="navbarNav">
+				<ul class="navbar-nav">
+					<li class="nav-item"><a class="nav-link" th:href="@{/}"><i
+							class="fas fa-home"></i> Página Inicial</a></li>
+					<li class="nav-item"><a class="nav-link"
+						th:href="@{/catalogo}"><i class="fas fa-book"></i> Catálogo</a></li>
+					<th:block
+						th:if="${session.usuarioLogado != null and session.usuarioLogado.permissao == 2}">
+						<li class="nav-item"><a class="nav-link" th:href="@{/painel}"><i
+								class="fas fa-th-large"></i> Painel</a></li>
+					</th:block>
+					<th:block th:if="${session.usuarioLogado != null}">
+						<li class="nav-item"><a class="nav-link"
+							th:href="${session.usuarioLogado.permissao == 2 ? '/funcionario/perfil' : '/cliente/perfil'}">
+								<i class="fas fa-user"></i> Perfil
+						</a></li>
+					</th:block>
+					<th:block th:if="${session.usuarioLogado eq null}">
+						<li class="nav-item"><a class="nav-link"
+							th:href="@{/usuario/login}"><i class="fas fa-sign-in-alt"></i>
+								Login</a></li>
+						<li class="nav-item"><a class="nav-link"
+							th:href="@{/cliente/register}"><i class="fas fa-user-plus"></i>
+								Registrar</a></li>
+					</th:block>
+					<th:block
+						th:if="${session.usuarioLogado ne null and session.usuarioLogado.permissao == 1}">
+						<li class="nav-item"><a class="nav-link"
+							th:href="@{/pedido/carrinho}"><i class="fas fa-shopping-cart"></i>
+								Carrinho de Compras</a></li>
+						<li class="nav-item"><a class="nav-link"
+							th:href="@{/aluguel/carrinho}"><i
+								class="fas fa-shopping-cart"></i> Carrinho de Aluguéis</a></li>
+					</th:block>
+					<th:block th:if="${session.usuarioLogado ne null}">
+						<li class="nav-item"><a class="nav-link"
+							th:href="@{/usuario/logout}"><i class="fas fa-sign-out-alt"></i>
+								Logout</a></li>
+					</th:block>
+				</ul>
+				<th:block th:if="${session.usuarioLogado ne null}">
+					<span class="navbar-text text-white ml-4"
+						style="display: inline-block;"> <img
+						th:src="@{/imgs/DefaultProfilePhoto.png}" alt="Imagem de Perfil"
+						class="rounded-circle ml-2" style="width: 50px; height: 50px;">
+						<span th:text="${session.usuarioLogado.getLogin()}"
+						style="display: block; padding-left: 5px"></span>
+					</span>
+				</th:block>
+			</div>
+		</div>
+	</nav>
+
+	<div th:fragment="content" class="container mt-4">
+		<div class="row">
+			<div class="col-md-9">
+				<form class="form-inline mb-3" th:action="@{/}" method="get">
+					<div class="input-group">
+						<input type="text" id="titulo" name="titulo"
+							class="form-control custom-input mt-2" style="width: 400px;"
+							placeholder="Pesquisar livro pelo título..."
+							oninput="formatarTitulo(this)" pattern=".{3,}"
+							title="Por favor, insira pelo menos 3 caracteres." required>
+						<div class="input-group-append">
+							<button class="btn btn-primary mt-2" type="submit">Pesquisar</button>
+						</div>
+					</div>
+				</form>
+				<div th:if="${livros.empty}" class="alert alert-warning mt-3"
+					role="alert" style="max-width: 490px;">
+					<i class="fas fa-exclamation-circle mr-2"></i> Não foi encontrado
+					nenhum livro.
+				</div>
+				<div th:if="${not livros.empty}">
+					<h2 class="mb-4 mt-5">Livros</h2>
+					<div class="row">
+						<div class="col-md-4 mb-4" th:each="livro : ${livros}">
+							<div class="card h-100">
+								<img class="card-img-top m-3" th:src="@{/imgs/DefaultBook.png}"
+									style="width: 220px; height: 220px;" alt="Card image cap">
+								<div class="card-body">
+									<h5 class="card-title" th:text="${livro.titulo}">Título</h5>
+									<h6 class="card-subtitle mb-2 text-muted"
+										th:text="${livro.autor}">Autor</h6>
+									<p class="card-text" th:text="${livro.genero}">Gênero</p>
+									<p class="card-price">
+										<span>R$</span><span th:text="${livro.preco}">Preço</span>
+									</p>
+									<th:block
+										th:if="${session.usuarioLogado ne null and session.usuarioLogado.permissao == 1}">
+										<div th:id="'adicionarItemForm-' + ${livro.id}"
+											style="display: none;">
+											<form th:id="'addItemForm-' + ${livro.id}" method="post">
+												<input type="hidden" name="livroId" th:value="${livro.id}" />
+												<div class="form-group">
+													<label for="quantidade">Quantidade:</label> <input
+														type="number" class="form-control" id="quantidade"
+														name="quantidade" value="1" min="1" />
+												</div>
+												<div class="form-group">
+													<label for="tipo">Escolha:</label> <select
+														class="form-control" id="tipo" name="tipo">
+														<option value="comprar">Comprar</option>
+														<option value="alugar">Alugar</option>
+													</select>
+												</div>
+												<button type="submit" class="btn btn-primary btn-block mb-3"
+													th:attr="onclick='updateAction(\'' + ${livro.id} + '\')'">Adicionar</button>
+												<button type="button" class="btn btn-danger btn-block"
+													th:attr="onclick='closeForm(\'' + ${livro.id} + '\')'">Fechar</button>
+											</form>
+										</div>
+										<button type="button" class="btn btn-primary btn-block"
+											th:attr="onclick='toggleForm(\'' + ${livro.id} + '\')'">Adicionar
+											ao Carrinho</button>
+									</th:block>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-3">
+				<h5 class="text-left mb-4">Categorias</h5>
+				<ul class="list-group">
+					<li class="list-group-item"><a
+						th:href="@{/catalogo?genero=Ação}" class="list-group-item-action">Ação</a></li>
+					<li class="list-group-item"><a
+						th:href="@{/catalogo?genero=Ficção}"
+						class="list-group-item-action">Ficção</a></li>
+					<li class="list-group-item"><a
+						th:href="@{/catalogo?genero=Romance}"
+						class="list-group-item-action">Romance</a></li>
+					<li class="list-group-item"><a
+						th:href="@{/catalogo?genero=Mistério}"
+						class="list-group-item-action">Mistério</a></li>
+					<li class="list-group-item"><a
+						th:href="@{/catalogo?genero=Fantasia}"
+						class="list-group-item-action">Fantasia</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<footer th:fragment="footer" class="footer bg-dark text-white py-5">
+		<div class="container text-center">
+			<span>© 2024 Livraria</span>
+		</div>
+	</footer>
+
+	<th:block th:fragment="scripts">
+		<script th:src="@{js/bootstrap.min.js}"></script>
+	</th:block>
+</body>
+
+</html>

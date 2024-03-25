@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="layout_base :: head('Livraria - Pagina Inicial')"></head>
+
+<body>
+	<nav th:replace="layout_base :: navbar"></nav>
+
+	<div th:replace="layout_base :: content"></div>
+
+	<footer th:replace="layout_base :: footer"></footer>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+
+	<script>
+		function toggleForm(livroID) {
+			var formDiv = document.getElementById("adicionarItemForm-"
+					+ livroID);
+			formDiv.style.display = "block";
+		}
+
+		function closeForm(livroID) {
+			var formDiv = document.getElementById("adicionarItemForm-"
+					+ livroID);
+			formDiv.style.display = "none";
+		}
+
+		function updateAction(livroID) {
+			var addItemForm = document.getElementById("addItemForm-" + livroID);
+			var tipo = addItemForm.querySelector("#tipo").value;
+
+			if (tipo === "comprar") {
+				addItemForm.action = "/pedido/adicionarItem";
+			} else if (tipo === "alugar") {
+				addItemForm.action = "/aluguel/adicionarItem";
+			}
+		}
+
+		function formatarTitulo(input) {
+			let palavras = input.value.toLowerCase().split(' ');
+			for (let i = 0; i < palavras.length; i++) {
+				palavras[i] = palavras[i].charAt(0).toUpperCase()
+						+ palavras[i].substring(1);
+			}
+			let textoFormatado = palavras.join(' ');
+			input.value = textoFormatado;
+		}
+	</script>
+
+	<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+
+[id^="adicionarItemForm"] {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 9999;
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+	width: 80%;
+	max-width: 400px;
+}
+
+.card {
+	transition: transform 0.3s;
+}
+
+.card:hover {
+	transform: scale(1.05);
+}
+</style>
+
+</body>
+
+</html>

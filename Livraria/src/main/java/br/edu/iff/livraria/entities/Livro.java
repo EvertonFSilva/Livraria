@@ -1,12 +1,15 @@
 package br.edu.iff.livraria.entities;
 
 import java.io.Serializable;
+import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -44,6 +47,9 @@ public class Livro implements Serializable {
     @Positive(message = "O preço deve ser maior que zero")
     @NotNull(message = "O preço não pode ser nulo")
 	private float preco;
+
+    @OneToMany(mappedBy = "livro", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Item> itens;
 
 	public Livro(String titulo, String autor, String genero, int qtdPaginas, float preco) {
 		this.titulo = titulo;
@@ -103,5 +109,13 @@ public class Livro implements Serializable {
 
 	public void setPreco(float preco) {
 		this.preco = preco;
+	}
+
+	public List<Item> getItens() {
+		return itens;
+	}
+
+	public void setItens(List<Item> itens) {
+		this.itens = itens;
 	}
 }

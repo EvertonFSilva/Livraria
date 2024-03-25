@@ -11,6 +11,9 @@ import br.edu.iff.livraria.entities.Item;
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
+    @Query("SELECT i FROM Item i WHERE i.livro.id = :livroId")
+    List<Item> buscarPorLivroId(Long livroId);
+
 	@Query(value = "SELECT * FROM Item WHERE id = ?1", nativeQuery = true)
 	Item buscarPorId(Long id);
 

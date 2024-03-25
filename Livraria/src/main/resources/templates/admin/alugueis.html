@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head
+	th:replace="layout_base :: head('Livraria - Painel dos Alugueis')"></head>
+<body>
+	<nav th:replace="layout_base :: navbar"></nav>
+
+	<div class="container mt-5 mb-5">
+		<div th:fragment="alugueis">
+			<h2 class="text-center mb-4">Alugueis</h2>
+			<input type="text" id="filtroAluguel" class="form-control mb-3"
+				placeholder="Filtrar por cliente..." onkeyup="filtrarAlugueis()"
+				oninput="capitalizeFirstLetter(this)">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Data de Inicio</th>
+						<th>Data de Fim</th>
+						<th>Data de Entrega</th>
+						<th>Cliente</th>
+						<th>Itens</th>
+						<th>Valor Total</th>
+						<th>Status</th>
+						<th>Ações</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="aluguel : ${alugueis}">
+						<td th:text="${aluguel.id}"></td>
+						<td
+							th:text="${#temporals.format(aluguel.dataInicio, 'dd-MM-yyyy HH:mm')}"></td>
+						<td
+							th:text="${#temporals.format(aluguel.dataFim, 'dd-MM-yyyy HH:mm')}"></td>
+						<td
+							th:text="${#temporals.format(aluguel.dataEntrega, 'dd-MM-yyyy HH:mm')}"></td>
+
+						<td th:text="${aluguel.cliente.nome}"></td>
+						<td>
+							<ul>
+								<li th:each="item : ${aluguel.itens}"><span
+									th:text="${item.livro.titulo} + ' x ' + ${item.quantidade}"></span>
+									<span> <i class="fas fa-edit"
+										style="cursor: pointer; color: black;"
+										th:attr="onclick='openEditItemForm(\'' + ${aluguel.id} + '\', \'' + ${item.id} + '\', \'' + ${item.livro.id} + '\', \'' + ${item.quantidade} + '\')'"
+										onmouseover="this.style.color='blue'"
+										onmouseout="this.style.color='black'"> </i> <i
+										class="fas fa-trash-alt"
+										style="cursor: pointer; color: black;"
+										th:attr="onclick='openDeleteItemForm(\'' + ${aluguel.id} + '\', \'' + ${item.id} + '\')'"
+										onmouseover="this.style.color='blue'"
+										onmouseout="this.style.color='black'"> </i>
+								</span></li>
+							</ul>
+						</td>
+						<td th:text="${aluguel.valorTotal}"></td>
+						<td
+							th:text="${aluguel.finalizado ? 'Finalizado' : 'Em Progresso'}"></td>
+						<td>
+							<div class="d-flex flex-column align-items-center">
+								<div class="d-flex">
+									<button class="btn btn-secondary btn-sm mb-2 mr-2"
+										th:attr="onclick='openEditAluguelForm(\'' + ${aluguel.id} + '\', \'' + ${aluguel.cliente.id} + '\', \'' + ${aluguel.valorTotal} + '\', \'' + ${#temporals.format(aluguel.dataInicio, 'yyyy-MM-dd HH:mm')} + '\', \'' + ${#temporals.format(aluguel.dataFim, 'yyyy-MM-dd HH:mm')} + '\', \'' + ${aluguel.dataEntrega} + '\', \'' + ${aluguel.formaPagamento} + '\', \'' + ${aluguel.finalizado} + '\')'">
+										Editar</button>
+									<button class="btn btn-danger btn-sm mb-2"
+										th:attr="onclick='confirmDeleteAluguel(\'' + ${aluguel.id} + '\')'">
+										Excluir</button>
+								</div>
+								<button class="btn btn-success btn-sm"
+									th:attr="onclick='openAddItemForm(\'' + ${aluguel.id} + '\')'">Adicionar
+									Item</button>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<button class="btn btn-success" onclick="openAddAluguelForm()">Adicionar
+				Aluguel</button>
+			<div th:if="${mensagem}" class="popup-message">
+				<p th:text="${mensagem}" class="text-center"></p>
+				<button type="button" class="btn btn-primary btn-sm mt-3"
+					onclick="closePopupMessage()">Fechar</button>
+			</div>
+		</div>
+	</div>
+
+	<div id="addAluguelForm" class="popup-form" style="display: none;">
+		<form th:action="@{/aluguel/admin/adicionar}" method="post">
+			<div class="form-group">
+				<label for="clienteId">Cliente ID:</label> <input type="number"
+					name="clienteId" id="clienteId" class="form-control" min="1"
+					required />
+				<button type="button" class="btn btn-info mt-3"
+					onclick="openClienteListPopup()">Selecionar Cliente</button>
+			</div>
+			<div class="form-group">
+				<label for="formaPagamento">Forma de Pagamento:</label> <select
+					class="form-control" id="formaPagamento" name="formaPagamento">
+					<option value="PIX">PIX</option>
+					<option value="CARTÃO">Cartão</option>
+					<option value="BOLETO">Boleto</option>
+				</select>
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Adicionar
+				Aluguel</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeAddAluguelForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="editAluguelForm" class="popup-form" style="display: none;">
+		<form th:action="@{/aluguel/admin/editar}" method="post">
+			<input type="hidden" name="aluguelId" id="aluguelId" /> <input
+				type="hidden" name="clienteId" id="clienteId" />
+			<div class="form-group">
+				<label for="valorTotal">Valor Total:</label> <input type="number"
+					id="valorTotal" name="valorTotal" class="form-control" min="1"
+					required />
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<label for="dataInicio">Data de Inicio:</label> <input
+						type="datetime-local" id="dataInicio" name="dataInicio"
+						class="form-control" required />
+				</div>
+				<div class="form-group col-md-6">
+					<label for="dataFim">Data de Fim:</label> <input
+						type="datetime-local" id="dataFim" name="dataFim"
+						class="form-control" required />
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="dataEntrega">Data de Entrega:</label> <input
+					type="datetime-local" id="dataEntrega" name="dataEntrega"
+					class="form-control" required />
+			</div>
+			<div class="form-group">
+				<label for="formaPagamento">Forma de Pagamento:</label> <select
+					class="form-control" id="formaPagamento" name="formaPagamento">
+					<option value="PIX">PIX</option>
+					<option value="CARTÃO">Cartão</option>
+					<option value="BOLETO">Boleto</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<label for="status">Status:</label> <select class="form-control"
+					id="status" name="status">
+					<option value="true">Finalizado</option>
+					<option value="false">Em Progresso</option>
+				</select>
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Salvar
+				Alterações</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeEditAluguelForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="confirmDeleteAluguelForm" class="popup-form"
+		style="display: none;">
+		<form th:action="@{/aluguel/admin/deletar}" method="post">
+			<input type="hidden" name="aluguelId" id="aluguelId" />
+			<p>Deseja realmente excluir este aluguel?</p>
+			<div class="text-center">
+				<button type="submit" class="btn btn-success mr-2">Sim</button>
+				<button type="button" class="btn btn-danger"
+					onclick="cancelDeleteAluguel()">Não</button>
+			</div>
+		</form>
+	</div>
+
+	<div id="addItemForm" class="popup-form" style="display: none;">
+		<form th:action="@{/aluguel/admin/adicionarItem}" method="post">
+			<input type="hidden" name="aluguelId" id="aluguelId" />
+			<div class="form-group">
+				<label for="livroId">Livro ID:</label> <input type="number"
+					id="livroId" name="livroId" class="form-control" min="1" required />
+				<button type="button" class="btn btn-info mt-3"
+					onclick="openLivroListPopup(1)">Selecionar Livro</button>
+			</div>
+			<div class="form-group">
+				<label for="quantidade">Quantidade:</label> <input type="number"
+					id="quantidade" name="quantidade" class="form-control" value="1"
+					min="1" required />
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Adicionar
+				Item</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeAddItemForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="deleteItemForm" class="popup-form" style="display: none;">
+		<form th:action="@{/aluguel/admin/deletarItem}" method="post">
+			<input type="hidden" name="aluguelId" id="aluguelId" /> <input
+				type="hidden" name="itemId" id="itemId" />
+			<p>Deseja realmente excluir este item do aluguel?</p>
+			<div class="text-center">
+				<button type="submit" class="btn btn-success mr-2">Sim</button>
+				<button type="button" class="btn btn-danger"
+					onclick="cancelDeleteItem()">Não</button>
+			</div>
+		</form>
+	</div>
+
+	<div id="editItemForm" class="popup-form" style="display: none;">
+		<form th:action="@{/aluguel/admin/editarItem}" method="post">
+			<input type="hidden" name="aluguelId" id="aluguelId" /> <input
+				type="hidden" name="itemId" id="itemId" />
+			<div class="form-group">
+				<label for="livroId">Novo Livro ID:</label> <input type="number"
+					name="livroId" id="livroId" class="form-control" min="1" required />
+				<button type="button" class="btn btn-info mt-3"
+					onclick="openLivroListPopup(2)">Selecionar Livro</button>
+			</div>
+			<div class="form-group">
+				<label for="novaQuantidade">Nova Quantidade:</label> <input
+					type="number" id="novaQuantidade" name="novaQuantidade"
+					class="form-control" required />
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Salvar
+				Alterações</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeEditItemForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="clienteListPopup" class="popup-form" style="display: none;">
+		<h3>Lista de Clientes</h3>
+		<input type="text" id="filtroNome" class="form-control mb-3"
+			placeholder="Filtrar por nome..." onkeyup="filtrarClientes()"
+			oninput="capitalizeFirstLetter(this)">
+		<table class="table">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Nome</th>
+					<th>Ação</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="cliente : ${clientes}">
+					<td th:text="${cliente.id}"></td>
+					<td th:text="${cliente.nome}"></td>
+					<td>
+						<button type="button" class="btn btn-info"
+							th:attr="onclick='selecionarCliente(\'' + ${cliente.id} + '\')'">Selecionar</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<button type="button" class="btn btn-danger btn-block"
+			onclick="closeClienteListPopup()">Fechar</button>
+	</div>
+
+	<div id="livroListPopup" class="popup-form" style="display: none;">
+		<h3>Lista de Livros</h3>
+		<input type="text" id="filtroTitulo" class="form-control mb-3"
+			placeholder="Filtrar por título..." onkeyup="filtrarLivros()">
+		<table class="table">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Titulo</th>
+					<th>Preço</th>
+					<th>Ação</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="livro : ${livros}">
+					<td th:text="${livro.id}"></td>
+					<td th:text="${livro.titulo}"></td>
+					<td th:text="${livro.preco}"></td>
+					<td>
+						<button type="button" class="btn btn-info"
+							th:attr="onclick='selecionarLivro(\'' + ${livro.id} + '\')'">Selecionar</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<button type="button" class="btn btn-danger btn-block"
+			onclick="closeLivroListPopup()">Fechar</button>
+	</div>
+
+	<footer th:replace="layout_base :: footer"></footer>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+
+	<script>
+		function capitalizeFirstLetter(input) {
+			var name = input.value.trim();
+			if (name !== "") {
+				var correctedName = name.charAt(0).toUpperCase()
+						+ name.slice(1).toLowerCase();
+				input.value = correctedName;
+			}
+		}
+		function openAddAluguelForm() {
+			var addAluguelForm = document.getElementById("addAluguelForm");
+			addAluguelForm.style.display = "block";
+		}
+
+		function closeAddAluguelForm() {
+			var addAluguelForm = document.getElementById("addAluguelForm");
+			addAluguelForm.style.display = "none";
+		}
+
+		function openAddItemForm(aluguelId) {
+			var addItemForm = document.getElementById("addItemForm");
+			addItemForm.style.display = "block";
+
+			var addFormElement = addItemForm.querySelector("form");
+			addFormElement.querySelector("#aluguelId").value = aluguelId;
+		}
+
+		function closeAddItemForm() {
+			var addItemForm = document.getElementById("addItemForm");
+			addItemForm.style.display = "none";
+		}
+
+		function openDeleteItemForm(aluguelId, itemId) {
+			var deleteItemForm = document.getElementById("deleteItemForm");
+			deleteItemForm.style.display = "block";
+
+			var deleteFormElement = deleteItemForm.querySelector("form");
+			deleteFormElement.querySelector("#aluguelId").value = aluguelId;
+			deleteFormElement.querySelector("#itemId").value = itemId;
+		}
+
+		function cancelDeleteItem() {
+			var deleteItemForm = document.getElementById("deleteItemForm");
+			deleteItemForm.style.display = "none";
+		}
+
+		function openEditItemForm(aluguelId, itemId, livroId, quantidade) {
+			var editItemForm = document.getElementById("editItemForm");
+			editItemForm.style.display = "block";
+
+			var editFormElement = editItemForm.querySelector("form");
+			editFormElement.querySelector("#aluguelId").value = aluguelId;
+			editFormElement.querySelector("#itemId").value = itemId;
+			editFormElement.querySelector("#livroId").value = livroId;
+			editFormElement.querySelector("#novaQuantidade").value = quantidade;
+		}
+
+		function closeEditItemForm() {
+			var editItemForm = document.getElementById("editItemForm");
+			editItemForm.style.display = "none";
+		}
+
+		function openEditAluguelForm(aluguelId, clienteId, valorTotal,
+				dataInicio, dataFim, dataEntrega, formaPagamento, status) {
+			var editAluguelForm = document.getElementById("editAluguelForm");
+			editAluguelForm.style.display = "block";
+
+			var editFormElement = editAluguelForm.querySelector("form");
+			editFormElement.querySelector("#aluguelId").value = aluguelId;
+			editFormElement.querySelector("#clienteId").value = clienteId;
+			editFormElement.querySelector("#valorTotal").value = valorTotal;
+			editFormElement.querySelector("#dataInicio").value = dataInicio;
+			editFormElement.querySelector("#dataFim").value = dataFim;
+			editFormElement.querySelector("#dataEntrega").value = dataEntrega;
+			editFormElement.querySelector("#formaPagamento").value = formaPagamento;
+			editFormElement.querySelector("#status").value = status;
+		}
+
+		function closeEditAluguelForm() {
+			var editAluguelForm = document.getElementById("editAluguelForm");
+			editAluguelForm.style.display = "none";
+		}
+
+		function confirmDeleteAluguel(aluguelId) {
+			var confirmDeleteAluguelForm = document
+					.getElementById("confirmDeleteAluguelForm");
+			confirmDeleteAluguelForm.style.display = "block";
+
+			var deleteFormElement = confirmDeleteAluguelForm
+					.querySelector("form");
+			deleteFormElement.querySelector("#aluguelId").value = aluguelId;
+		}
+
+		function cancelDeleteAluguel() {
+			var confirmDeleteAluguelForm = document
+					.getElementById("confirmDeleteAluguelForm");
+			confirmDeleteAluguelForm.style.display = "none";
+		}
+
+		function openClienteListPopup() {
+			var clienteListPopup = document.getElementById("clienteListPopup");
+			clienteListPopup.style.display = "block";
+		}
+
+		function closeClienteListPopup() {
+			var clienteListPopup = document.getElementById("clienteListPopup");
+			clienteListPopup.style.display = "none";
+		}
+
+		function openLivroListPopup(livroPopup) {
+			var livroListPopup = document.getElementById("livroListPopup");
+			livroListPopup.style.display = "block";
+
+			var selecionarLivroButton = document
+					.querySelector("#livroListPopup button");
+			selecionarLivroButton.dataset.livroPopup = livroPopup;
+		}
+
+		function closeLivroListPopup() {
+			var livroListPopup = document.getElementById("livroListPopup");
+			livroListPopup.style.display = "none";
+		}
+
+		function selecionarCliente(clienteId) {
+			var addAluguelForm = document.getElementById("addAluguelForm");
+			var addFormElement = addAluguelForm.querySelector("form");
+			addFormElement.querySelector("#clienteId").value = clienteId;
+			closeClienteListPopup();
+		}
+
+		function selecionarLivro(livroId) {
+			var livroPopup = document.querySelector("#livroListPopup button").dataset.livroPopup;
+			var itemForm = null;
+			if (livroPopup == 1) {
+				itemForm = document.getElementById("addItemForm");
+			} else {
+				itemForm = document.getElementById("editItemForm");
+			}
+			var addFormElement = itemForm.querySelector("form");
+			addFormElement.querySelector("#livroId").value = livroId;
+			closeLivroListPopup();
+		}
+
+		function filtrarAlugueis() {
+			var input, filter, table, tr, td, i, txtValue;
+			input = document.getElementById("filtroAluguel");
+			filter = input.value.toUpperCase();
+			table = document.querySelector(".table");
+			tr = table.getElementsByTagName("tr");
+			for (i = 0; i < tr.length; i++) {
+				td = tr[i].getElementsByTagName("td")[4];
+				if (td) {
+					txtValue = td.textContent || td.innerText;
+					if (txtValue.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+					} else {
+						tr[i].style.display = "none";
+					}
+				}
+			}
+		}
+
+		function filtrarClientes() {
+			var input, filter, table, tr, td, i, txtValue;
+			input = document.getElementById("filtroNome");
+			filter = input.value.toUpperCase();
+			table = document.getElementById("clienteListPopup");
+			tr = table.getElementsByTagName("tr");
+			for (i = 0; i < tr.length; i++) {
+				td = tr[i].getElementsByTagName("td")[1];
+				if (td) {
+					txtValue = td.textContent || td.innerText;
+					if (txtValue.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+					} else {
+						tr[i].style.display = "none";
+					}
+				}
+			}
+		}
+
+		function filtrarLivros() {
+			var input, filter, table, tr, td, i, txtValue;
+			input = document.getElementById("filtroTitulo");
+			filter = input.value.toUpperCase();
+			table = document.getElementById("livroListPopup");
+			tr = table.getElementsByTagName("tr");
+			for (i = 0; i < tr.length; i++) {
+				td = tr[i].getElementsByTagName("td")[1];
+				if (td) {
+					txtValue = td.textContent || td.innerText;
+					if (txtValue.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+					} else {
+						tr[i].style.display = "none";
+					}
+				}
+			}
+		}
+
+		function closePopupMessage() {
+			var popupMessage = document.querySelector('.popup-message');
+			popupMessage.style.display = 'none';
+
+			var urlWithoutParams = window.location.origin
+					+ window.location.pathname;
+			window.history.replaceState({}, document.title, urlWithoutParams);
+			window.location.reload();
+		}
+	</script>
+
+	<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+
+.popup-form {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 9999;
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+	width: 80%;
+	max-width: 400px;
+	max-height: 80vh;
+	overflow-y: auto;
+}
+
+.popup-message {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 9999;
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+}
+
+.popup-form table {
+	width: 100%;
+}
+
+.popup-form table th, .popup-form table td {
+	padding: 8px;
+	text-align: left;
+}
+</style>
+</body>
+</html>

@@ -31,25 +31,37 @@ public class PedidoService {
 		return pedidoRepository.buscarPorId(id);
 	}
 
-	public String adicionarPedido(Long clienteId, String formaPagamento) {
+	public List<Pedido> buscarPedidosEmProgresso(Long clienteId) {
+		return pedidoRepository.buscarPedidosEmProgresso(clienteId);
+	}
+
+	public List<Pedido> buscarPedidosDoCliente(Long clienteId) {
+		return pedidoRepository.buscarPedidosDoCliente(clienteId);
+	}
+	
+	public List<Pedido> buscarPedidosFinalizados(Long clienteId) {
+		return pedidoRepository.buscarPedidosFinalizados(clienteId);
+	}
+
+	public Pedido adicionarPedido(Long clienteId, String formaPagamento) {
 		Cliente clienteExistente = clienteService.buscarPorId(clienteId);
 		if (clienteExistente == null) {
-			return "Cliente não encontrado.";
+			return null;
 		}
 
 		List<Pedido> pedidosEmProgresso = pedidoRepository.buscarPedidosEmProgresso(clienteId);
 		if (!pedidosEmProgresso.isEmpty()) {
-			return "Cliente já tem um pedido em progresso.";
+			return null;
 		}
 
 		Pedido novoPedido = new Pedido(clienteExistente, formaPagamento);
 		clienteExistente.adicionarPedido(novoPedido);
 		pedidoRepository.saveAndFlush(novoPedido);
-		return "Pedido adicionado. Id: " + novoPedido.getId();
+		return novoPedido;
 	}
 
 	public String atualizarPedido(Long pedidoId, Long clienteId, float valorTotal, LocalDateTime dataPedido,
-			LocalDateTime dataEntrega, String formaPagamento) {
+			LocalDateTime dataEntrega, String formaPagamento, boolean status) {
 		Cliente clienteExistente = clienteService.buscarPorId(clienteId);
 		if (clienteExistente == null) {
 			return "Cliente não encontrado.";
@@ -59,24 +71,25 @@ public class PedidoService {
 		if (pedidoExistente == null || !pedidoExistente.getCliente().getId().equals(clienteId)) {
 			return "Pedido não encontrado ou não pertence a esse Cliente.";
 		}
-
-		if (pedidoExistente.isFinalizado()) {
-			return "Pedido já finalizado.";
+		if (valorTotal > 0) {
+			pedidoExistente.setValorTotal(valorTotal);
+		}
+		if (dataPedido != null) {
+			pedidoExistente.setDataPedido(dataPedido);
+		}
+		if (dataEntrega != null) {
+			pedidoExistente.setDataEntrega(dataEntrega);
+		}
+		if (!formaPagamento.isEmpty()) {
+			pedidoExistente.setFormaPagamento(formaPagamento);
 		}
 		
-	    if (valorTotal > 0) {
-	        pedidoExistente.setValorTotal(valorTotal);
-	    }
-	    if (dataPedido != null) {
-	        pedidoExistente.setDataPedido(dataPedido);
-	    }
-	    if (dataEntrega != null) {
-	        pedidoExistente.setDataEntrega(dataEntrega);
-	    }
-	    if (!formaPagamento.isEmpty()) {
-	        pedidoExistente.setFormaPagamento(formaPagamento);
-	    }
-	    pedidoRepository.saveAndFlush(pedidoExistente);
+		List<Pedido> pedidosEmAberto = pedidoRepository.buscarPedidosEmProgresso(clienteId);
+		if (pedidosEmAberto.isEmpty() || !pedidoExistente.isFinalizado()) {
+			pedidoExistente.setFinalizado(status);
+		}
+		
+		pedidoRepository.saveAndFlush(pedidoExistente);
 		return "Pedido atualizado com sucesso.";
 	}
 
@@ -92,9 +105,14 @@ public class PedidoService {
 			return "Cliente não encontrado.";
 		}
 
-		List<Pedido> pedidosEmProgresso = pedidoRepository.buscarPedidosEmProgresso(clienteExistente.getId());
-		if (pedidosEmProgresso.size() != 1) {
+		List<Pedido> pedidosEmProgresso = pedidoRepository.buscarPedidosDoCliente(clienteExistente.getId());
+		if (pedidosEmProgresso.size() == 0) {
 			return "O cliente não tem nenhum pedido.";
+		}
+
+		List<Item> itensDoPedido = pedidosEmProgresso.get(0).getItens();
+		for (Item item : itensDoPedido) {
+			itemService.deletarItem(item.getId());
 		}
 
 		clienteExistente.removerPedido(pedidoExistente);
@@ -118,22 +136,23 @@ public class PedidoService {
 			return "Esse livro não existe.";
 		}
 
-		boolean itemExistente = pedidoExistente.getItens().stream()
-				.anyMatch(item -> item.getLivro().getId().equals(livroId));
-
-		if (itemExistente) {
-			return "Item já adicionado ao Pedido.";
-		}
-
-		Item item = new Item(livroExistente, quantidade);
-		boolean itemAdicionado = itemService.adicionarItem(item);
-
-		if (itemAdicionado) {
-			pedidoExistente.adicionarItem(item);
+		Item itemExistente = pedidoExistente.getItemByLivroId(livroId);
+		if (itemExistente != null) {
+			itemExistente.setQuantidade(itemExistente.getQuantidade() + quantidade);
+			pedidoExistente.setValorTotal(pedidoExistente.getValorTotal() + (livroExistente.getPreco() * quantidade));
 			pedidoRepository.saveAndFlush(pedidoExistente);
-			return "Item adicionado ao pedido. ItemId: " + item.getId();
+			return "Quantidade do item atualizada no pedido.";
 		} else {
-			return "Erro ao adicionar o item.";
+			Item item = new Item(livroExistente, quantidade);
+			boolean itemAdicionado = itemService.adicionarItem(item);
+
+			if (itemAdicionado) {
+				pedidoExistente.adicionarItem(item);
+				pedidoRepository.saveAndFlush(pedidoExistente);
+				return "Item adicionado ao pedido. ItemId: " + item.getId();
+			} else {
+				return "Erro ao adicionar o item.";
+			}
 		}
 	}
 
@@ -192,12 +211,59 @@ public class PedidoService {
 		return "Pedido finalizado.";
 	}
 
+	public String atualizarItemDoPedido(Long pedidoId, Long itemId, Long novoLivroId, int novaQuantidade) {
+		Pedido pedidoExistente = buscarPorId(pedidoId);
+
+		if (pedidoExistente == null) {
+			return "Pedido não encontrado.";
+		}
+
+		if (pedidoExistente.isFinalizado()) {
+			return "Pedido já finalizado.";
+		}
+
+		Item itemExistente = pedidoExistente.getItemById(itemId);
+
+		if (itemExistente == null) {
+			return "Item não encontrado no pedido.";
+		}
+
+		Livro novoLivro = null;
+		if (novoLivroId != null) {
+			novoLivro = livroService.buscarPorId(novoLivroId);
+			if (novoLivro == null) {
+				return "Livro não encontrado.";
+			}
+		}
+
+		float precoUnitarioAtual = itemExistente.getLivro().getPreco();
+		float novoValorTotal;
+
+		if (novoLivro != null) {
+			float precoUnitarioNovo = novoLivro.getPreco();
+			float valorDoLivroAnterior = precoUnitarioAtual * itemExistente.getQuantidade();
+			float valorDoNovoLivro = precoUnitarioNovo * novaQuantidade;
+			itemExistente.setLivro(novoLivro);
+			itemExistente.setQuantidade(novaQuantidade);
+			novoValorTotal = pedidoExistente.getValorTotal() - valorDoLivroAnterior + valorDoNovoLivro;
+		} else {
+			int diferencaQuantidade = novaQuantidade - itemExistente.getQuantidade();
+			itemExistente.setQuantidade(novaQuantidade);
+			novoValorTotal = pedidoExistente.getValorTotal() + (diferencaQuantidade * precoUnitarioAtual);
+		}
+
+		pedidoExistente.setValorTotal(novoValorTotal);
+		pedidoRepository.saveAndFlush(pedidoExistente);
+
+		return "Item atualizado no pedido.";
+	}
+
 	public List<Item> listarItensDoPedido(Long pedidoId) {
 		Pedido pedidoExistente = buscarPorId(pedidoId);
 		return (pedidoExistente != null) ? pedidoExistente.getItens() : null;
 	}
-	
-	public List<Livro> listarLivrosDoPedido(Long pedidoId) {		
+
+	public List<Livro> listarLivrosDoPedido(Long pedidoId) {
 		List<Livro> listaLivros = new ArrayList<>();
 		Pedido pedido = buscarPorId(pedidoId);
 

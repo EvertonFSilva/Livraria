@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout_base :: head('Livraria - Registro')"></head>
+<body>
+	<nav th:replace="layout_base :: navbar"></nav>
+
+	<div class="container mt-5 mb-5">
+		<div th:fragment="registerClienteForm">
+			<div th:if="${novoCliente != null}"
+				class="row justify-content-center">
+				<div class="col-md-6">
+					<div class="card">
+						<div class="card-body">
+							<h2 class="card-title text-center mb-4">Registrar</h2>
+							<form th:action="@{/cliente/register}" th:object="${novoCliente}"
+								method="post">
+								<div class="form-group">
+									<label for="username">Usuário:</label> <input type="text"
+										class="form-control" id="username" th:field="*{usuario.login}"
+										th:required="required" oninput="capitalizeFirstLetter(this)">
+								</div>
+								<div class="form-group">
+									<label for="password">Senha:</label> <input type="password"
+										class="form-control" id="password" th:field="*{usuario.senha}"
+										th:required="required">
+								</div>
+								<div class="form-group">
+									<label for="cpf">CPF:</label> <input type="text"
+										class="form-control" id="cpf" th:field="*{cpf}"
+										th:required="required">
+								</div>
+								<div class="form-group">
+									<label for="nome">Nome:</label> <input type="text"
+										class="form-control" id="nome" th:field="*{nome}"
+										th:required="required" oninput="capitalizeFirstLetter(this)">
+								</div>
+								<div class="form-group">
+									<label for="email">Email:</label> <input type="email"
+										class="form-control" id="email" th:field="*{email}"
+										th:required="required">
+								</div>
+								<div class="form-group">
+									<label for="telefone">Telefone:</label> <input type="text"
+										class="form-control" id="telefone" th:field="*{telefones[0]}">
+								</div>
+								<div class="form-group">
+									<label for="endereco">Endereço:</label> <input type="text"
+										class="form-control" id="endereco" th:field="*{endereco}"
+										th:required="required">
+								</div>
+								<button type="submit" class="btn btn-primary btn-block">Registrar</button>
+							</form>
+							<div th:if="${mensagem}" class="alert alert-danger mt-3"
+								role="alert">
+								<p th:text="${mensagem}" class="text-center"></p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="layout_base :: footer"></footer>
+	
+	<th:block th:replace="layout_base :: scripts"></th:block>
+
+	<script>
+		function capitalizeFirstLetter(input) {
+			var name = input.value.trim();
+			if (name !== "") {
+				var correctedName = name.charAt(0).toUpperCase()
+						+ name.slice(1).toLowerCase();
+				input.value = correctedName;
+			}
+		}
+	</script>
+</body>
+</html>

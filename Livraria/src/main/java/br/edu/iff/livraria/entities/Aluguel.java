@@ -20,7 +20,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
@@ -40,12 +39,10 @@ public class Aluguel implements Serializable {
 	@PositiveOrZero(message = "O valor total deve ser maior ou igual a 0")
 	private float valorTotal;
 
-	@NotNull(message = "A data de início não pode ser nula")
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "data_inicio")
 	private LocalDateTime dataInicio;
 
-	@NotNull(message = "A data de fim não pode ser nula")
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "data_fim")
 	private LocalDateTime dataFim;
@@ -90,6 +87,28 @@ public class Aluguel implements Serializable {
 	public List<Item> getItens() {
 		return itens;
 	}
+
+	public void setItens(List<Item> itens) {
+		this.itens = itens;
+	}
+	
+	public Item getItemById(Long itemId) {
+	    for (Item item : itens) {
+	        if (item.getId().equals(itemId)) {
+	            return item;
+	        }
+	    }
+	    return null;
+	}
+
+    public Item getItemByLivroId(Long livroId) {
+        for (Item item : itens) {
+            if (item.getLivro().getId().equals(livroId)) {
+                return item;
+            }
+        }
+        return null;
+    }
 
 	public void adicionarItem(Item item) {
 		this.itens.add(item);
@@ -155,8 +174,12 @@ public class Aluguel implements Serializable {
 		return finalizado;
 	}
 
+	public void setFinalizado(boolean finalizado) {
+		this.finalizado = finalizado;
+	}
+
 	public void finalizar() {
-		this.dataFim = LocalDateTime.now();
+		this.dataInicio = LocalDateTime.now();
 		this.dataFim = this.dataInicio.plusDays(10);
 		this.dataEntrega = LocalDateTime.now().toLocalDate().atStartOfDay();
 		this.finalizado = true;

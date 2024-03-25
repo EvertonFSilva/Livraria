@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout_base :: head('Painel dos Usuários')"></head>
+<body>
+	<nav th:replace="layout_base :: navbar"></nav>
+
+	<div class="container mt-5 mb-5">
+		<div th:fragment="usuarios">
+			<h2 class="text-center mb-4">Lista de Usuários</h2>
+			<input type="text" id="filtroLogin" class="form-control mb-3"
+				placeholder="Filtrar por login..." onkeyup="filtrarUsuarios()"
+				oninput="capitalizeFirstLetter(this)">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Login</th>
+						<th>Senha</th>
+						<th>Permissão</th>
+						<th>Ações</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="usuario : ${usuarios}">
+						<td th:text="${usuario.id}"></td>
+						<td th:text="${usuario.login}"></td>
+						<td th:text="${usuario.senha}"></td>
+						<td th:text="${usuario.permissao}"></td>
+						<td>
+							<button class="btn btn-secondary btn-sm"
+								th:attr="onclick='openEditForm(\'' + ${usuario.id} + '\', \'' + ${usuario.login} + '\', \'' + ${usuario.senha} + '\', \'' + ${usuario.permissao} + '\')'">Editar</button>
+							<button class="btn btn-danger btn-sm"
+								th:attr="onclick='confirmDelete(\'' + ${usuario.id} + '\')'">Excluir</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<button class="btn btn-success" onclick="openAddForm()">Adicionar
+				Usuário</button>
+		</div>
+	</div>
+
+	<div id="addForm" class="popup-form" style="display: none;">
+		<form th:action="@{/usuario/adicionar}" method="post">
+			<div class="form-group">
+				<label for="addLogin">Login:</label> <input type="text"
+					class="form-control" id="addLogin" name="login" required
+					oninput="capitalizeFirstLetter(this)" />
+			</div>
+			<div class="form-group">
+				<label for="addSenha">Senha:</label> <input type="text"
+					class="form-control" id="addSenha" name="senha" required />
+			</div>
+			<div class="form-group">
+				<label for="addPermissao">Permissão:</label> <input type="number"
+					class="form-control" id="addPermissao" name="permissao" required />
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Adicionar
+				Usuário</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeAddForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="editForm" class="popup-form" style="display: none;">
+		<form th:action="@{/usuario/editar}" method="post">
+			<input type="hidden" id="editUserId" name="id" />
+			<div class="form-group">
+				<label for="editLogin">Login:</label> <input type="text"
+					class="form-control" id="editLogin" name="login" required
+					oninput="capitalizeFirstLetter(this)" />
+			</div>
+			<div class="form-group">
+				<label for="editSenha">Senha:</label> <input type="text"
+					class="form-control" id="editSenha" name="senha" />
+			</div>
+			<div class="form-group">
+				<label for="editPermissao">Permissão:</label> <input type="number"
+					class="form-control" id="editPermissao" name="permissao" required />
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Salvar
+				Alterações</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeEditForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="confirmDeleteForm" class="popup-form" style="display: none;">
+		<form th:action="@{/usuario/deletar}" method="post">
+			<input type="hidden" id="id" name="id" />
+			<p>Deseja realmente excluir este usuário?</p>
+			<div class="text-center">
+				<button type="submit" class="btn btn-success mr-2">Sim</button>
+				<button type="button" class="btn btn-danger"
+					onclick="cancelDelete()">Não</button>
+			</div>
+		</form>
+	</div>
+
+	<footer th:replace="layout_base :: footer"></footer>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+
+	<script>
+		function capitalizeFirstLetter(input) {
+			var name = input.value.trim();
+			if (name !== "") {
+				var correctedName = name.charAt(0).toUpperCase()
+						+ name.slice(1).toLowerCase();
+				input.value = correctedName;
+			}
+		}
+
+		function openAddForm() {
+			var addForm = document.getElementById("addForm");
+			addForm.style.display = "block";
+		}
+
+		function closeAddForm() {
+			var addForm = document.getElementById("addForm");
+			addForm.style.display = "none";
+		}
+
+		function openEditForm(id, login, senha, permissao) {
+			var editForm = document.getElementById("editForm");
+			editForm.style.display = "block";
+
+			var editFormElement = editForm.querySelector("form");
+			editFormElement.querySelector("#editUserId").value = id;
+			editFormElement.querySelector("#editLogin").value = login;
+			editFormElement.querySelector("#editSenha").value = senha;
+			editFormElement.querySelector("#editPermissao").value = permissao;
+		}
+
+		function closeEditForm() {
+			var editForm = document.getElementById("editForm");
+			editForm.style.display = "none";
+		}
+
+		function confirmDelete(id) {
+			var confirmDeleteForm = document
+					.getElementById("confirmDeleteForm");
+			confirmDeleteForm.style.display = "block";
+			document.getElementById("id").value = id;
+		}
+
+		function cancelDelete() {
+			var confirmDeleteForm = document
+					.getElementById("confirmDeleteForm");
+			confirmDeleteForm.style.display = "none";
+		}
+
+		function filtrarUsuarios() {
+			var input, filter, table, tr, td, i, txtValue;
+			input = document.getElementById("filtroLogin");
+			filter = input.value.toUpperCase();
+			table = document.querySelector("table");
+			tr = table.getElementsByTagName("tr");
+			for (i = 0; i < tr.length; i++) {
+				td = tr[i].getElementsByTagName("td")[1];
+				if (td) {
+					txtValue = td.textContent || td.innerText;
+					if (txtValue.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+					} else {
+						tr[i].style.display = "none";
+					}
+				}
+			}
+		}
+	</script>
+
+	<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+
+.popup-form {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 9999;
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+	width: 80%;
+	max-width: 400px;
+}
+</style>
+</body>
+</html>

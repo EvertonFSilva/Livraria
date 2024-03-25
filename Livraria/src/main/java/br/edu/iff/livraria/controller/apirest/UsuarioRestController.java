@@ -21,7 +21,7 @@ public class UsuarioRestController {
 	@ResponseBody
 	@Operation(summary = "Adicionar um usuário específico")
 	public ResponseEntity<String> adicionarUsuario(@RequestParam String login, @RequestParam String senha,
-			@RequestParam int permissao) {
+			@RequestParam int permissao) throws Exception {
 		try {
 			Usuario resultado = usuarioService.adicionarUsuario(login, senha, permissao);
 			return ResponseEntity.ok(
@@ -35,7 +35,7 @@ public class UsuarioRestController {
 	@ResponseBody
 	@Operation(summary = "Atualizar um usuário específico")
 	public ResponseEntity<String> atualizarUsuario(@PathVariable("id") Long id, @RequestParam String login,
-			@RequestParam String senha, @RequestParam int permissao) {
+			@RequestParam String senha, @RequestParam int permissao) throws Exception {
 		try {
 			String mensagem = usuarioService.atualizarUsuario(id, login, senha, permissao);
 			return ResponseEntity.ok(mensagem);
@@ -47,7 +47,7 @@ public class UsuarioRestController {
 	@DeleteMapping("/{id}")
 	@ResponseBody
 	@Operation(summary = "Deletar um usuário específico")
-	public ResponseEntity<String> deletarUsuario(@PathVariable("id") Long id) {
+	public ResponseEntity<String> deletarUsuario(@PathVariable("id") Long id) throws Exception {
 		try {
 			String mensagem = usuarioService.deletarUsuario(id);
 			return ResponseEntity.ok(mensagem);
@@ -59,7 +59,7 @@ public class UsuarioRestController {
 	@GetMapping("/{id}")
 	@ResponseBody
 	@Operation(summary = "Retornar um usuário específico")
-	public ResponseEntity<Usuario> buscarUsuario(@PathVariable("id") Long id) {
+	public ResponseEntity<Usuario> buscarUsuario(@PathVariable("id") Long id) throws Exception {
 		try {
 			Usuario usuario = usuarioService.buscarPorId(id);
 			return ResponseEntity.ok(usuario);
@@ -71,7 +71,7 @@ public class UsuarioRestController {
 	@GetMapping
 	@ResponseBody
 	@Operation(summary = "Listar todos os usuários")
-	public ResponseEntity<List<Usuario>> listarUsuarios() {
+	public ResponseEntity<List<Usuario>> listarUsuarios() throws Exception {
 		List<Usuario> usuarios = usuarioService.listarUsuarios();
 		return ResponseEntity.ok(usuarios);
 	}

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout_base :: head('Livraria - Painel dos Clientes')"></head>
+<body>
+	<nav th:replace="layout_base :: navbar"></nav>
+
+	<div class="container mt-5 mb-5">
+		<div th:fragment="clientes">
+			<h2 class="text-center mb-4">Clientes</h2>
+			<input type="text" id="filtroNome" class="form-control mb-3"
+				placeholder="Filtrar por nome..." onkeyup="filtrarClientes()"
+				oninput="capitalizeFirstLetter(this)">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Login</th>
+						<th>Senha</th>
+						<th>CPF</th>
+						<th>Nome</th>
+						<th>Email</th>
+						<th>Telefone</th>
+						<th>Endereço</th>
+						<th>Ações</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="cliente : ${clientes}">
+						<td th:text="${cliente.id}"></td>
+						<td th:text="${cliente.usuario.login}"></td>
+						<td th:text="${cliente.usuario.senha}"></td>
+						<td th:text="${cliente.cpf}"></td>
+						<td th:text="${cliente.nome}"></td>
+						<td th:text="${cliente.email}"></td>
+						<td>
+							<ul>
+								<li th:each="telefone : ${cliente.telefones}"
+									th:text="${telefone}"></li>
+							</ul>
+						</td>
+						<td th:text="${cliente.endereco}"></td>
+						<td>
+							<button class="btn btn-secondary btn-sm mb-2"
+								th:attr="onclick='openEditForm(\'' + ${cliente.id} + '\', \'' + ${cliente.cpf} + '\', \'' + ${cliente.nome} + '\', \'' + ${cliente.email} + '\', \'' + ${cliente.telefones[0]} + '\', \'' + ${cliente.endereco} + '\', \'' + ${cliente.usuario.login} + '\', \'' + ${cliente.usuario.senha} + '\')'">Editar</button>
+							<button class="btn btn-danger btn-sm"
+								th:attr="onclick='confirmDelete(\'' + ${cliente.id} + '\')'">Excluir</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<button class="btn btn-success" onclick="openAddForm()">Adicionar
+				Cliente</button>
+		</div>
+	</div>
+
+	<div id="addForm" class="popup-form" style="display: none;">
+		<form th:action="@{/cliente/adicionar}" method="post">
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<label for="login">Login:</label> <input type="text"
+						class="form-control" id="login" name="login" required
+						oninput="capitalizeFirstLetter(this)" />
+				</div>
+				<div class="form-group col-md-6">
+					<label for="senha">Senha:</label> <input type="text"
+						class="form-control" id="senha" name="senha" required />
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<label for="cpf">CPF:</label> <input type="text"
+						class="form-control" id="cpf" name="cpf" required />
+				</div>
+				<div class="form-group col-md-6">
+					<label for="nome">Nome:</label> <input type="text"
+						class="form-control" id="nome" name="nome" required
+						oninput="capitalizeFirstLetter(this)" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="email">Email:</label> <input type="email"
+					class="form-control" id="email" name="email" required />
+			</div>
+			<div class="form-group">
+				<label for="telefone">Telefone:</label> <input type="tel"
+					class="form-control" id="telefone" name="telefone" required />
+			</div>
+			<div class="form-group">
+				<label for="endereco">Endereço:</label> <input type="text"
+					class="form-control" id="endereco" name="endereco" required />
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Adicionar
+				Cliente</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeAddForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="editForm" class="popup-form" style="display: none;">
+		<form th:action="@{/cliente/editar}" method="post">
+			<input type="hidden" id="editClienteId" name="id" />
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<label for="login">Login:</label> <input type="text"
+						class="form-control" id="editLogin" name="login" required
+						oninput="capitalizeFirstLetter(this)" />
+				</div>
+				<div class="form-group col-md-6">
+					<label for="senha">Senha:</label> <input type="text"
+						class="form-control" id="editSenha" name="senha" required />
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<label for="cpf">CPF:</label> <input type="text"
+						class="form-control" id="editCpf" name="cpf" required />
+				</div>
+				<div class="form-group col-md-6">
+					<label for="nome">Nome:</label> <input type="text"
+						class="form-control" id="editNome" name="nome" required
+						oninput="capitalizeFirstLetter(this)" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="email">Email:</label> <input type="email"
+					class="form-control" id="editEmail" name="email" required />
+			</div>
+			<div class="form-group">
+				<label for="telefone">Telefone:</label> <input type="tel"
+					class="form-control" id="editTelefone" name="telefone" required />
+			</div>
+			<div class="form-group">
+				<label for="endereco">Endereço:</label> <input type="text"
+					class="form-control" id="editEndereco" name="endereco" required />
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Salvar
+				Alterações</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeEditForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="confirmDeleteForm" class="popup-form" style="display: none;">
+		<form th:action="@{/cliente/deletar}" method="post">
+			<input type="hidden" id="id" name="id" />
+			<p>Deseja realmente excluir este cliente?</p>
+			<div class="text-center">
+				<button type="submit" class="btn btn-success mr-2">Sim</button>
+				<button type="button" class="btn btn-danger"
+					onclick="cancelDelete()">Não</button>
+			</div>
+		</form>
+	</div>
+
+	<footer th:replace="layout_base :: footer"></footer>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+	
+	<script>
+		function capitalizeFirstLetter(input) {
+			var name = input.value.trim();
+			if (name !== "") {
+				var correctedName = name.charAt(0).toUpperCase()
+						+ name.slice(1).toLowerCase();
+				input.value = correctedName;
+			}
+		}
+
+		function openAddForm() {
+			var addForm = document.getElementById("addForm");
+			addForm.style.display = "block";
+		}
+
+		function closeAddForm() {
+			var addForm = document.getElementById("addForm");
+			addForm.style.display = "none";
+		}
+
+		function openEditForm(id, cpf, nome, email, telefone, endereco, login,
+				senha) {
+			var editForm = document.getElementById("editForm");
+			editForm.style.display = "block";
+
+			var editFormElement = editForm.querySelector("form");
+			editFormElement.querySelector("#editLogin").value = login;
+			editFormElement.querySelector("#editSenha").value = senha;
+			editFormElement.querySelector("#editClienteId").value = id;
+			editFormElement.querySelector("#editCpf").value = cpf;
+			editFormElement.querySelector("#editNome").value = nome;
+			editFormElement.querySelector("#editEmail").value = email;
+			editFormElement.querySelector("#editTelefone").value = telefone;
+			editFormElement.querySelector("#editEndereco").value = endereco;
+		}
+
+		function closeEditForm() {
+			var editForm = document.getElementById("editForm");
+			editForm.style.display = "none";
+		}
+
+		function confirmDelete(id) {
+			var confirmDeleteForm = document
+					.getElementById("confirmDeleteForm");
+			confirmDeleteForm.style.display = "block";
+			document.getElementById("id").value = id;
+		}
+
+		function cancelDelete() {
+			var confirmDeleteForm = document
+					.getElementById("confirmDeleteForm");
+			confirmDeleteForm.style.display = "none";
+		}
+
+		function filtrarClientes() {
+			var input, filter, table, tr, td, i, txtValue;
+			input = document.getElementById("filtroNome");
+			filter = input.value.toUpperCase();
+			table = document.querySelector("table");
+			tr = table.getElementsByTagName("tr");
+			for (i = 0; i < tr.length; i++) {
+				td = tr[i].getElementsByTagName("td")[4];
+				if (td) {
+					txtValue = td.textContent || td.innerText;
+					if (txtValue.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+					} else {
+						tr[i].style.display = "none";
+					}
+				}
+			}
+		}
+	</script>
+
+	<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+
+.popup-form {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 9999;
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+	width: 80%;
+	max-width: 400px;
+}
+</style>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout_base :: head('Livraria - Painel dos Livros')"></head>
+<body>
+	<nav th:replace="layout_base :: navbar"></nav>
+
+	<div class="container mt-5 mb-5">
+		<div th:fragment="livros">
+			<h2 class="text-center mb-4">Livros</h2>
+			<input type="text" id="filtroTitulo" class="form-control mb-3"
+				placeholder="Filtrar por título..." onkeyup="filtrarLivros()">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Título</th>
+						<th>Autor</th>
+						<th>Gênero</th>
+						<th>Páginas</th>
+						<th>Preço</th>
+						<th>Ações</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="livro : ${livros}">
+						<td th:text="${livro.titulo}"></td>
+						<td th:text="${livro.autor}"></td>
+						<td th:text="${livro.genero}"></td>
+						<td th:text="${livro.qtdPaginas}"></td>
+						<td th:text="${livro.preco}"></td>
+						<td>
+							<button class="btn btn-secondary btn-sm"
+								th:attr="onclick='openEditForm(\'' + ${livro.id} + '\', \'' + ${livro.titulo} + '\', \'' + ${livro.autor} + '\', \'' + ${livro.genero} + '\', \'' + ${livro.qtdPaginas} + '\', \'' + ${livro.preco} + '\')'">Editar</button>
+							<button class="btn btn-danger btn-sm"
+								th:attr="onclick='confirmDelete(\'' + ${livro.id} + '\')'">Excluir</button>
+							</form>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<button class="btn btn-success" onclick="openAddForm()">Adicionar
+				Livro</button>
+		</div>
+	</div>
+
+	<div id="addForm" class="popup-form" style="display: none;">
+		<form th:action="@{/livro/adicionar}" method="post">
+			<div class="form-group">
+				<label for="titulo">Título:</label> <input type="text"
+					class="form-control" id="titulo" name="titulo"
+					oninput="formatarTituloAutor(this)" required />
+			</div>
+			<div class="form-group">
+				<label for="autor">Autor:</label> <input type="text"
+					class="form-control" id="autor" name="autor"
+					oninput="formatarTituloAutor(this)" required />
+			</div>
+			<div class="form-group">
+				<label for="genero">Gênero:</label> <select class="form-control"
+					id="genero" name="genero" required>
+					<option value="Ficção">Ficção</option>
+					<option value="Romance">Romance</option>
+					<option value="Ação" selected>Ação</option>
+					<option value="Aventura">Aventura</option>
+					<option value="Terror">Terror</option>
+					<option value="Comédia">Comédia</option>
+					<option value="Drama">Drama</option>
+					<option value="Fantasia">Fantasia</option>
+					<option value="Mistério">Mistério</option>
+					<option value="Suspense">Suspense</option>
+					<option value="Policial">Policial</option>
+					<option value="Biografia">Biografia</option>
+					<option value="Histórico">Histórico</option>
+					<option value="Autoajuda">Autoajuda</option>
+					<option value="Filosofia">Filosofia</option>
+					<option value="Quadrinhos">Quadrinhos</option>
+					<option value="Não Ficção">Não Ficção</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<label for="qtdPaginas">Páginas:</label> <input type="number"
+					class="form-control" id="qtdPaginas" name="qtdPaginas" required />
+			</div>
+			<div class="form-group">
+				<label for="preco">Preço:</label> <input type="number"
+					class="form-control" id="preco" name="preco" required />
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Adicionar
+				Livro</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeAddForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="editForm" class="popup-form" style="display: none;">
+		<form th:action="@{/livro/editar}" method="post">
+			<input type="hidden" id="editLivroId" name="id" />
+			<div class="form-group">
+				<label for="titulo">Título:</label> <input type="text"
+					class="form-control" id="titulo" name="titulo"
+					oninput="formatarTituloAutor(this)" required />
+			</div>
+			<div class="form-group">
+				<label for="autor">Autor:</label> <input type="text"
+					class="form-control" id="autor" name="autor"
+					oninput="formatarTituloAutor(this)" required />
+			</div>
+			<div class="form-group">
+				<label for="genero">Gênero:</label> <select class="form-control"
+					id="genero" name="genero" required>
+					<option value="Ficção">Ficção</option>
+					<option value="Romance">Romance</option>
+					<option value="Ação" selected>Ação</option>
+					<option value="Aventura">Aventura</option>
+					<option value="Terror">Terror</option>
+					<option value="Comédia">Comédia</option>
+					<option value="Drama">Drama</option>
+					<option value="Fantasia">Fantasia</option>
+					<option value="Mistério">Mistério</option>
+					<option value="Suspense">Suspense</option>
+					<option value="Policial">Policial</option>
+					<option value="Biografia">Biografia</option>
+					<option value="Histórico">Histórico</option>
+					<option value="Autoajuda">Autoajuda</option>
+					<option value="Filosofia">Filosofia</option>
+					<option value="Autoajuda">Autoajuda</option>
+					<option value="Quadrinhos">Quadrinhos</option>
+					<option value="Não Ficção">Não Ficção</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<label for="qtdPaginas">Páginas:</label> <input type="number"
+					class="form-control" id="qtdPaginas" name="qtdPaginas" required />
+			</div>
+			<div class="form-group">
+				<label for="preco">Preço:</label> <input type="number"
+					class="form-control" id="preco" name="preco" required />
+			</div>
+			<button type="submit" class="btn btn-primary btn-block">Salvar
+				Alterações</button>
+			<button type="button" class="btn btn-danger btn-block"
+				onclick="closeEditForm()">Cancelar</button>
+		</form>
+	</div>
+
+	<div id="confirmDeleteForm" class="popup-form" style="display: none;">
+		<form th:action="@{/livro/deletar}" method="post">
+			<input type="hidden" id="id" name="id" />
+			<p>Deseja realmente excluir este livro?</p>
+			<div class="text-center">
+				<button type="submit" class="btn btn-success mr-2">Sim</button>
+				<button type="button" class="btn btn-danger"
+					onclick="cancelDelete()">Não</button>
+			</div>
+		</form>
+	</div>
+
+	<footer th:replace="layout_base :: footer"></footer>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+	
+	<script>
+		function openAddForm() {
+			var addForm = document.getElementById("addForm");
+			addForm.style.display = "block";
+		}
+
+		function closeAddForm() {
+			var addForm = document.getElementById("addForm");
+			addForm.style.display = "none";
+		}
+
+		function openEditForm(id, titulo, autor, genero, qtdPaginas, preco) {
+			var editForm = document.getElementById("editForm");
+			editForm.style.display = "block";
+
+			var editFormElement = editForm.querySelector("form");
+			editFormElement.querySelector("#editLivroId").value = id;
+			editFormElement.querySelector("#titulo").value = titulo;
+			editFormElement.querySelector("#autor").value = autor;
+			editFormElement.querySelector("#genero").value = genero;
+			editFormElement.querySelector("#qtdPaginas").value = qtdPaginas;
+			editFormElement.querySelector("#preco").value = preco;
+		}
+
+		function closeEditForm() {
+			var editForm = document.getElementById("editForm");
+			editForm.style.display = "none";
+		}
+
+		function confirmDelete(id) {
+			var confirmDeleteForm = document
+					.getElementById("confirmDeleteForm");
+			confirmDeleteForm.style.display = "block";
+			document.getElementById("id").value = id;
+		}
+
+		function cancelDelete() {
+			var confirmDeleteForm = document
+					.getElementById("confirmDeleteForm");
+			confirmDeleteForm.style.display = "none";
+		}
+
+		function filtrarLivros() {
+			var input, filter, table, tr, td, i, txtValue;
+			input = document.getElementById("filtroTitulo");
+			filter = input.value.toUpperCase();
+			table = document.querySelector("table");
+			tr = table.getElementsByTagName("tr");
+			for (i = 0; i < tr.length; i++) {
+				td = tr[i].getElementsByTagName("td")[0];
+				if (td) {
+					txtValue = td.textContent || td.innerText;
+					if (txtValue.toUpperCase().indexOf(filter) > -1) {
+						tr[i].style.display = "";
+					} else {
+						tr[i].style.display = "none";
+					}
+				}
+			}
+		}
+
+		function formatarTituloAutor(input) {
+			let palavras = input.value.toLowerCase().split(' ');
+			for (let i = 0; i < palavras.length; i++) {
+				palavras[i] = palavras[i].charAt(0).toUpperCase()
+						+ palavras[i].substring(1);
+			}
+			let textoFormatado = palavras.join(' ');
+			input.value = textoFormatado;
+		}
+	</script>
+
+	<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+
+.popup-form {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 9999;
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+	width: 80%;
+	max-width: 400px;
+}
+</style>
+</body>
+</html>

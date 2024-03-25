@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="layout_base :: head('Erro 400')"></head>
+
+<body>
+
+	<div th:replace="layout_base :: navbar"></div>
+
+	<div class="container mt-4">
+		<div class="jumbotron text-center">
+			<h1 class="display-4">Solicitação inválida</h1>
+			<h3 class="display-5">Erro 400</h3>
+			<p class="lead">O servidor não entendeu a solicitação devido a
+				sintaxe incorreta ou outros erros na solicitação.</p>
+			<a class="btn btn-secondary btn-lg" th:href="@{~/./}" role="button">Voltar
+				à página inicial</a>
+		</div>
+	</div>
+
+	<div th:replace="layout_base :: footer"></div>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+</body>
+
+<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+</style>
+
+</html>
