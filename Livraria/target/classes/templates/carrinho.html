@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout_base :: head('Livraria - Meu Carrinho')"></head>
+<body>
+	<nav th:replace="layout_base :: navbar"></nav>
+
+	<div class="container mt-5 mb-5">
+		<div th:fragment="carrinho">
+			<div class="row justify-content-center">
+				<div class="col-md-8">
+					<div class="card">
+						<div class="card-body">
+							<h2 class="card-title text-center mb-4">Carrinho</h2>
+							<div th:if="${pedido != null or aluguel != null}">
+								<table class="table">
+									<thead>
+										<tr>
+											<th>Produto</th>
+											<th>Quantidade</th>
+											<th>Preço Unitário</th>
+											<th>Subtotal</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr
+											th:each="item : ${pedido != null ? pedido.itens : (aluguel != null ? aluguel.itens : null)}">
+											<td th:text="${item.livro.titulo}"></td>
+											<td><span th:text="${item.quantidade}"></span> <i
+												class="fas fa-edit ml-1"
+												th:onclick="'showQuantityForm(\'' + ${item.id} + '\', \'' + ${item.quantidade} + '\')'"
+												style="cursor: pointer; color: black;"
+												onmouseover="this.style.color='blue'"
+												onmouseout="this.style.color='black'"></i></td>
+											<td th:text="${item.livro.preco}"></td>
+											<td th:text="${item.quantidade * item.livro.preco}"></td>
+											<td>
+												<form
+													th:action="${pedido != null ? '/pedido/deletarItem' : '/aluguel/deletarItem'}"
+													method="post">
+													<input type="hidden" name="pedidoId"
+														th:value="${pedido != null ? pedido.id : aluguel.id}" />
+													<input type="hidden" name="itemId" th:value="${item.id}" />
+													<button type="submit"
+														style="background: none; border: none; padding: 0; cursor: pointer; outline: none;">
+														<i class="fas fa-trash" style="color: black;"
+															onmouseover="this.style.color='rgba(255,0,0,0.5)'"
+															onmouseout="this.style.color='black'"></i>
+													</button>
+												</form>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+								<p class="text-right font-weight-bold">
+									Total: R$ <span
+										th:text="${pedido != null ? pedido.valorTotal : aluguel.valorTotal}"></span>
+								</p>
+								<div class="text-right mt-3 mb-3">
+									<span class="badge badge-primary"
+										th:text="${pedido != null ? pedido.formaPagamento : aluguel.formaPagamento}"></span>
+								</div>
+								<th:block th:if="${session.usuarioLogado ne null}">
+									<div id="quantidadeForm" style="display: none;">
+										<form
+											th:action="${pedido != null ? '/pedido/alterar/quantidade' : '/aluguel/alterar/quantidade'}"
+											method="post">
+											<div class="form-group">
+												<input type="hidden" name="itemId" id="itemId" /> <label
+													for="novaQuantidade">Nova Quantidade:</label> <input
+													type="number" class="form-control" id="novaQuantidade"
+													name="novaQuantidade" min="1" required>
+											</div>
+											<button type="submit" class="btn btn-primary btn-block mb-3">Salvar</button>
+											<button type="button" class="btn btn-danger btn-block"
+												onclick="closeQuantityForm()">Fechar</button>
+										</form>
+									</div>
+									<div id="formaPagamentoForm" style="display: none;">
+										<form
+											th:action="${pedido != null ? '/pedido/alterar/pagamento' : '/aluguel/alterar/pagamento'}"
+											method="post">
+											<div class="form-group">
+												<label for="tipo">Escolha uma Forma de Pagamento:</label> <select
+													class="form-control" id="tipo" name="tipo">
+													<option value="PIX">PIX</option>
+													<option value="CARTÃO">Cartão</option>
+													<option value="BOLETO">Boleto</option>
+												</select>
+											</div>
+											<button type="submit" class="btn btn-primary btn-block mb-3">Salvar</button>
+											<button type="button" class="btn btn-danger btn-block"
+												onclick="closeFormaPagamentoForm()">Fechar</button>
+										</form>
+									</div>
+								</th:block>
+
+								<div class="text-center">
+									<a th:href="@{/}" class="btn btn-secondary mr-2 mb-3 mt-3">
+										<span
+										th:text="${aluguel != null ? 'Continuar Alugando' : 'Continuar Comprando'}"></span>
+									</a>
+									<th:block
+										th:if="${(pedido != null and pedido.itens.size() > 0) or (aluguel != null and aluguel.itens.size() > 0)}">
+										<a
+											th:href="${pedido != null ? '/pedido/finalizar' : '/aluguel/finalizar'}"
+											href="#" class="btn btn-primary mb-3 mt-3"
+											th:if="${pedido != null or aluguel != null}"
+											th:text="${'Finalizar ' + (aluguel != null ? 'Aluguel' : 'Compra')}">
+											Finalizar </a>
+									</th:block>
+									<button type="button" class="btn btn-success ml-2 mb-3 mt-3"
+										th:attr="onclick='showFormaPagamentoForm(\'' + ${pedido != null ? pedido.formaPagamento : aluguel.formaPagamento} + '\')'">Alterar
+										Forma de Pagamento</button>
+								</div>
+							</div>
+							<div th:unless="${pedido != null or aluguel != null}">
+								<p class="text-center font-weight-bold">Seu carrinho está
+									vazio.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<footer th:replace="layout_base :: footer"></footer>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+
+	<script>
+		function showFormaPagamentoForm(formaPagamento) {
+			var formaPagamentoForm = document
+					.getElementById("formaPagamentoForm");
+			formaPagamentoForm.style.display = "block";
+			document.getElementById("tipo").value = formaPagamento;
+		}
+
+		function closeFormaPagamentoForm() {
+			var formaPagamentoForm = document
+					.getElementById("formaPagamentoForm");
+			formaPagamentoForm.style.display = "none";
+		}
+
+		function showQuantityForm(itemId, quantidade) {
+			var quantidadeForm = document.getElementById("quantidadeForm");
+			var quantidadePadrao = document.getElementById("novaQuantidade");
+			var itemPadrao = document.getElementById("itemId")
+			quantidadePadrao.value = quantidade;
+			itemPadrao.value = itemId;
+			quantidadeForm.style.display = "block";
+		}
+
+		function closeQuantityForm() {
+			var quantidadeForm = document.getElementById("quantidadeForm");
+			quantidadeForm.style.display = "none";
+		}
+	</script>
+
+	<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+
+#formaPagamentoForm, #quantidadeForm {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 9999;
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+	width: 80%;
+	max-width: 400px;
+}
+</style>
+
+</body>
+</html>

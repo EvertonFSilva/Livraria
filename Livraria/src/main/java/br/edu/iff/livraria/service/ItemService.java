@@ -19,7 +19,7 @@ public class ItemService {
 	public Item buscarPorId(Long id) {
 		return itemRepository.buscarPorId(id);
 	}
-
+	
 	public boolean adicionarItem(Item item) {
 		Livro livroExistente = livroService.buscarPorTitulo(item.getLivro().getTitulo());
 		if (livroExistente == null) {

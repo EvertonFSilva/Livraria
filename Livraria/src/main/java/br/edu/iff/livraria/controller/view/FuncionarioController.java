@@ -1,28 +1,24 @@
 package br.edu.iff.livraria.controller.view;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import br.edu.iff.livraria.entities.Funcionario;
+import br.edu.iff.livraria.entities.Usuario;
 import br.edu.iff.livraria.service.FuncionarioService;
 import br.edu.iff.livraria.service.UsuarioService;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 @Controller
-@RequestMapping("funcionario")
+@RequestMapping("/funcionario")
 public class FuncionarioController {
 
 	@Autowired
@@ -31,199 +27,99 @@ public class FuncionarioController {
 	@Autowired
 	public FuncionarioService funcionarioService;
 
-	@GetMapping("/CRUD")
-	public String page() throws Exception {
-		return "redirect:/funcionario/CRUD/listarFuncionarios";
-	}
-
-	@GetMapping("/CRUD/addForm")
-	public String addFuncionarioForm(Model model, HttpServletRequest request) throws Exception {
-		model.addAttribute("funcionario_add", new Funcionario());
-		String resposta = request.getParameter("resposta");
-		if (resposta != null) {
-			model.addAttribute("respostaAdd", URLDecoder.decode(resposta, "UTF-8"));
+	@GetMapping("/listar")
+	public String listarFuncionarios(Model model, HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		if (usuario != null && usuario.getPermissao() == 2) {
+			model.addAttribute("funcionarios", funcionarioService.listarFuncionarios());
+			return "admin/funcionarios";
 		}
-		return "CRUD_Funcionario";
+		return "redirect:/";
 	}
 
-	@PostMapping("/CRUD/add")
-	public String addFuncionario(@Valid @ModelAttribute Funcionario funcionario, BindingResult resultado, Model model) {
-		if (resultado.hasErrors()) {
-			model.addAttribute("mensagemErro", resultado.getAllErrors());
-			return "";
+	@GetMapping("/perfil")
+	public String exibirPerfil(Model model, HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		Funcionario funcionario = funcionarioService.buscarPorLogin(usuario.getLogin());
+		System.out.println(usuario.getLogin());
+		if (funcionario != null) {
+			model.addAttribute("perfil", funcionario);
+			return "perfil";
+		}
+		return "redirect:/";
+	}
+
+	@PostMapping("/editarPerfil")
+	public String editarPerfil(@Valid @ModelAttribute Funcionario funcionario, Model model, HttpSession session,
+			BindingResult result) {
+		if (result.hasErrors()) {
+			model.addAttribute("mensagemErro", result.getAllErrors());
+			return "error";
 		} else {
-			String resposta = funcionarioService.adicionarFuncionario(funcionario.getUsuario().getLogin(),
-					funcionario.getUsuario().getSenha(), funcionario.getCpf(), funcionario.getNome(),
-					funcionario.getEmail(), funcionario.getTelefones().get(0), funcionario.getEndereco(),
-					funcionario.getCargo(), funcionario.getSalario());
-			try {
-				return "redirect:/funcionario/CRUD/addForm?resposta=" + URLEncoder.encode(resposta, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-				return "";
+			Funcionario funcionarioExistente = funcionarioService.buscarPorLogin(funcionario.getUsuario().getLogin());
+			if (funcionarioExistente != null
+					&& funcionarioExistente.getUsuario().getSenha().equals(funcionario.getUsuario().getSenha())) {
+				if (funcionarioExistente.getTelefones().isEmpty()) {
+					funcionarioService.adicionarTelefone(funcionarioExistente.getId(),
+							funcionario.getTelefones().get(0));
+				} else {
+					funcionarioService.atualizarTelefone(funcionarioExistente.getId(),
+							funcionarioExistente.getTelefones().get(0), funcionario.getTelefones().get(0));
+				}
+				String mensagem = funcionarioService.atualizarFuncionario(funcionarioExistente.getId(),
+						funcionario.getCpf(), funcionario.getNome(), funcionario.getEmail(), funcionario.getEndereco(),
+						funcionario.getCargo(), funcionario.getSalario());
+				model.addAttribute("perfil", funcionarioExistente);
+				model.addAttribute("mensagem", mensagem);
+			}
+			return "perfil";
+		}
+	}
+
+	@PostMapping("/adicionar")
+	public String adicionarFuncionario(@RequestParam("login") String login, @RequestParam("senha") String senha,
+			@RequestParam("cpf") String cpf, @RequestParam("nome") String nome, @RequestParam("email") String email,
+			@RequestParam("telefone") String telefone, @RequestParam("endereco") String endereco,
+			@RequestParam("cargo") String cargo, @RequestParam("salario") float salario, Model model,
+			HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		if (usuario != null && usuario.getPermissao() == 2) {
+			funcionarioService.adicionarFuncionario(login, senha, cpf, nome, email, telefone, endereco, cargo, salario);
+			return "redirect:/funcionario/listar";
+		}
+		return "redirect:/";
+	}
+
+	@PostMapping("/editar")
+	public String editarFuncionario(@RequestParam("id") Long id, @RequestParam("login") String login,
+			@RequestParam("senha") String senha, @RequestParam("cpf") String cpf, @RequestParam("nome") String nome,
+			@RequestParam("email") String email, @RequestParam("telefone") String telefone,
+			@RequestParam("endereco") String endereco, @RequestParam("cargo") String cargo,
+			@RequestParam("salario") float salario, Model model, HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		if (usuario != null && usuario.getPermissao() == 2) {
+			Funcionario funcionario = funcionarioService.buscarPorLogin(usuario.getLogin());
+			if (funcionario != null) {
+				usuarioService.atualizarUsuario(id, login, senha, 0);
+				if (funcionario.getTelefones().isEmpty()) {
+					funcionarioService.adicionarTelefone(id, telefone);
+				} else {
+					funcionarioService.atualizarTelefone(id, funcionario.getTelefones().get(0), telefone);
+				}
+				funcionarioService.atualizarFuncionario(id, cpf, nome, email, endereco, cargo, salario);
+				return "redirect:/funcionario/listar";
 			}
 		}
+		return "redirect:/";
 	}
 
-	@GetMapping("/CRUD/listarFuncionarios")
-	public String listarFuncionarios(Model model, HttpServletRequest request) throws Exception {
-		String cpf = request.getParameter("cpf");
-		if (cpf == null) {
-			model.addAttribute("funcionario_lista", funcionarioService.listarFuncionarios());
-		} else {
-			Funcionario funcionario = funcionarioService.buscarPorCPF(cpf);
-			if (funcionario == null) {
-				funcionario = new Funcionario();
-			}
-			model.addAttribute("funcionario_lista", funcionario);
+	@PostMapping("/deletar")
+	public String deletarFuncionario(@RequestParam("id") Long id, Model model, HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		if (usuario != null && usuario.getPermissao() == 2) {
+			funcionarioService.deletarFuncionario(id);
+			return "redirect:/funcionario/listar";
 		}
-		return "CRUD_Funcionario";
+		return "redirect:/";
 	}
-
-	@PostMapping("/CRUD/buscaCPF")
-	public String buscarFuncionarioCPF(String cpf) throws Exception {
-		return "redirect:/funcionario/CRUD/listarFuncionarios?cpf=" + URLEncoder.encode(cpf, "UTF-8");
-	}
-
-	@GetMapping("/CRUD/editar")
-	public String formEditar(@RequestParam Long id, Model model) throws Exception {
-		Funcionario funcionario = funcionarioService.buscarPorId(id);
-		model.addAttribute("funcionario_edit", funcionario);
-		model.addAttribute("telefone_lista", funcionarioService.listarTelefones(funcionario.getId()));
-		return "CRUD_Funcionario";
-	}
-
-	@PostMapping("/CRUD/atualizar")
-	public String atualizarFuncionario(@Valid @ModelAttribute Funcionario funcionario, BindingResult resultado,
-			Model model) {
-		String login = funcionario.getUsuario().getLogin();
-		String senha = funcionario.getUsuario().getSenha();
-		String cpf = funcionario.getCpf();
-		String nome = funcionario.getNome();
-		String email = funcionario.getEmail();
-		String endereco = funcionario.getEndereco();
-		String cargo = funcionario.getCargo();
-		Float salario = funcionario.getSalario();
-		if (resultado.hasErrors()) {
-			model.addAttribute("mensagemErro", resultado.getAllErrors());
-			return "";
-		} else {
-			funcionarioService.atualizarFuncionario(funcionarioService.buscarPorCPF(cpf).getUsuario().getId(), cpf, nome, email, endereco, cargo, salario);
-			if (!login.isEmpty() || !senha.isEmpty()) {
-				usuarioService.atualizarUsuario(funcionarioService.buscarPorCPF(cpf).getUsuario().getId(), login, senha, 1);
-			}
-		}
-		return "CRUD_Funcionario";
-	}
-
-	@GetMapping("/CRUD/deletePorCPF")
-	public String deletarFuncionarioCPF(String cpf) throws Exception {
-		funcionarioService.deletarFuncionario(funcionarioService.buscarPorCPF(cpf).getId());
-		return "redirect:/funcionario/CRUD/listarFuncionarios";
-	}
-
-	@GetMapping("/CRUD/removeTelefone")
-	public String removeTelefone(String cpf, String telefone) throws Exception {
-		if (funcionarioService.buscarPorCPF(cpf).getTelefones().size() > 1) {
-			funcionarioService.deletarTelefone(funcionarioService.buscarPorCPF(cpf).getId(), telefone);
-		}
-		return "redirect:/funcionario/CRUD/editar?id=" + funcionarioService.buscarPorCPF(cpf).getId();
-	}
-
-	@PostMapping("/CRUD/addTelefone")
-	public String addTelefone(@Valid @ModelAttribute Funcionario funcionario, BindingResult resultado, Model model) {
-		String cpf = funcionario.getCpf();
-		String telefone = funcionario.getTelefones().get(0);
-		if (resultado.hasErrors()) {
-			model.addAttribute("mensagemErro", resultado.getAllErrors());
-			return "";
-		} else {
-			funcionarioService.adicionarTelefone(funcionarioService.buscarPorCPF(cpf).getId(), telefone);
-			return "redirect:/funcionario/CRUD/editar?id=" + funcionarioService.buscarPorCPF(cpf).getId();
-		}
-	}
-
-	@GetMapping("/editarPerfil/{id}")
-	public String editarPerfil(@PathVariable("id") Long id, Model model) throws Exception {
-		Funcionario funcionario = funcionarioService.buscarPorId(id);
-		model.addAttribute("funcionario_edit", funcionario);
-		model.addAttribute("telefone_lista", funcionarioService.listarTelefones(funcionario.getId()));
-		return "editarPerfil";
-	}
-
-	@PostMapping("/editarPerfil/atualizarValoresPerfil")
-	public String atualizarValoresPerfil(@Valid @ModelAttribute Funcionario funcionario, BindingResult resultado,
-			Model model) {
-		String login = funcionario.getUsuario().getLogin();
-		String senha = funcionario.getUsuario().getSenha();
-		String cpf = funcionario.getCpf();
-		String nome = funcionario.getNome();
-		String email = funcionario.getEmail();
-		String endereco = funcionario.getEndereco();
-		String cargo = funcionario.getCargo();
-		Float salario = funcionario.getSalario();
-
-		if (resultado.hasErrors()) {
-			model.addAttribute("mensagemErro", resultado.getAllErrors());
-			return "";
-		} else {
-			funcionarioService.atualizarFuncionario(funcionarioService.buscarPorCPF(cpf).getUsuario().getId(), cpf, nome, email, endereco, cargo, salario);
-			if (!login.isEmpty() || !senha.isEmpty()) {
-				usuarioService.atualizarUsuario(funcionarioService.buscarPorCPF(cpf).getUsuario().getId(), login, senha, 1);
-			}
-			return "redirect:/funcionario/editarPerfil/" + funcionarioService.buscarPorCPF(cpf).getId();
-		}
-	}
-
-	@GetMapping("/editarPerfil/removeTelefone")
-	public String removeTelefonePerfil(String cpf, String telefone) throws Exception {
-		if (funcionarioService.buscarPorCPF(cpf).getTelefones().size() > 1) {
-			funcionarioService.deletarTelefone(funcionarioService.buscarPorCPF(cpf).getId(), telefone);
-		}
-		return "redirect:/funcionario/editarPerfil/" + funcionarioService.buscarPorCPF(cpf).getId();
-	}
-
-	@PostMapping("/editarPerfil/addTelefone")
-	public String addTelefonePerfil(@Valid @ModelAttribute Funcionario funcionario, BindingResult resultado,
-			Model model) {
-		String cpf = funcionario.getCpf();
-		String telefone = funcionario.getTelefones().get(0);
-		if (resultado.hasErrors()) {
-			model.addAttribute("mensagemErro", resultado.getAllErrors());
-			return "";
-		} else {
-			funcionarioService.adicionarTelefone(funcionarioService.buscarPorCPF(cpf).getId(), telefone);
-			return "redirect:/funcionario/editarPerfil/" + funcionarioService.buscarPorCPF(cpf).getId();
-		}
-	}
-
-	@GetMapping("/cadastro")
-	public String cadastroForm(Model model, HttpServletRequest request) throws Exception {
-		model.addAttribute("funcionario_add", new Funcionario());
-		String resposta = request.getParameter("resposta");
-		if (resposta != null) {
-			model.addAttribute("respostaAdd", URLDecoder.decode(resposta, "UTF-8"));
-		}
-		return "cadastro";
-	}
-
-	@PostMapping("/cadastro/add")
-	public String addCadastro(@Valid @ModelAttribute Funcionario funcionario, BindingResult resultado, Model model) {
-		if (resultado.hasErrors()) {
-			model.addAttribute("mensagemErro", resultado.getAllErrors());
-			return "";
-		} else {
-			String resposta = funcionarioService.adicionarFuncionario(funcionario.getUsuario().getLogin(),
-					funcionario.getUsuario().getSenha(), funcionario.getCpf(), funcionario.getNome(),
-					funcionario.getEmail(), funcionario.getTelefones().get(0), funcionario.getEndereco(),
-					funcionario.getCargo(), funcionario.getSalario());
-			try {
-				return "redirect:/funcionario/cadastro?resposta=" + URLEncoder.encode(resposta, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-				return "";
-			}
-		}
-	}
-
 }

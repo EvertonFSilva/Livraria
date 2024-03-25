@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="layout_base :: head('Erro 405')"></head>
+
+<body>
+
+	<div th:replace="layout_base :: navbar"></div>
+
+	<div class="container mt-4">
+		<div class="jumbotron text-center">
+			<h1 class="display-4">Método não permitido</h1>
+			<h3 class="display-5">Erro 405</h3>
+			<p class="lead">O método de solicitação não é permitido para o
+				recurso solicitado.</p>
+			<a class="btn btn-secondary btn-lg" th:href="@{~/./}" role="button">Voltar
+				à página inicial</a>
+		</div>
+	</div>
+
+	<div th:replace="layout_base :: footer"></div>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+</body>
+
+<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+</style>
+
+</html>

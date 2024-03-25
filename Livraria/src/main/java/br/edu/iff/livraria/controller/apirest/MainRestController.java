@@ -12,15 +12,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1")
 public class MainRestController {
 
-    @GetMapping
-    @ResponseBody
-    @Operation(summary = "Mensagem principal da API")
-    public ResponseEntity<String> inicial() {
-        try {
-            String mensagem = "Olá, bem-vindo à API do meu APP.";
-            return ResponseEntity.ok(mensagem);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao processar a requisição.");
-        }
-    }
+	@GetMapping
+	@ResponseBody
+	@Operation(summary = "Mensagem principal da API")
+	public ResponseEntity<String> paginaInicial() throws Exception {
+		try {
+			String mensagem = "Olá, bem-vindo à API do meu APP.";
+			return ResponseEntity.ok(mensagem);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao processar a requisição.");
+		}
+	}
 }

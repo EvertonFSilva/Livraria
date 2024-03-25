@@ -20,25 +20,25 @@ public class ClienteService {
 	public Cliente buscarPorId(Long id) {
 		return clienteRepository.buscarPorId(id);
 	}
-	
+
 	public Cliente buscarPorCPF(String cpf) {
 		return clienteRepository.buscarPorCPF(cpf);
 	}
-	
-    public Cliente buscarPorLogin(String login) {
-        return clienteRepository.buscarPorLogin(login);
-    }
+
+	public Cliente buscarPorLogin(String login) {
+		return clienteRepository.buscarPorLogin(login);
+	}
 
 	public String adicionarCliente(String login, String senha, String cpf, String nome, String email, String telefone,
 			String endereco) {
 		Cliente clienteExistente = clienteRepository.buscarPorCPF(cpf);
 		if (clienteExistente != null) {
-			return "Cliente já cadastrado.";
+			return "Cliente já cadastrado com esse CPF.";
 		}
 
 		Usuario novoUsuario = usuarioService.adicionarUsuario(login, senha, 1);
 		if (novoUsuario == null) {
-			return "Erro ao adicionar usuário.";
+			return "Este nome de usuário já está em uso.";
 		}
 
 		Cliente novoCliente = new Cliente(cpf, nome, email, telefone, endereco);
@@ -54,9 +54,6 @@ public class ClienteService {
 			return "Cliente não encontrado.";
 		}
 
-		if (!clienteExistente.getCpf().equals(cpf)) {
-			return "Esse Id não pertence a esse cliente.";
-		}
 		if (!cpf.isEmpty()) {
 			clienteExistente.setCpf(cpf);
 		}
@@ -130,6 +127,26 @@ public class ClienteService {
 		clienteExistente.deletarTelefone(telefone);
 		clienteRepository.saveAndFlush(clienteExistente);
 		return "Telefone deletado com sucesso.";
+	}
+
+	public String atualizarTelefone(Long id, String telefoneAntigo, String telefoneNovo) {
+		Cliente clienteExistente = buscarPorId(id);
+		if (clienteExistente == null) {
+			return "Cliente não encontrado.";
+		}
+
+		List<String> telefones = clienteExistente.getTelefones();
+		if (telefones == null || telefones.isEmpty()) {
+			return "O cliente não possui telefones cadastrados.";
+		}
+
+		if (!telefones.contains(telefoneAntigo)) {
+			return "O telefone antigo não está cadastrado para este cliente.";
+		}
+
+		clienteExistente.atualizarTelefone(telefoneAntigo, telefoneNovo);
+		clienteRepository.saveAndFlush(clienteExistente);
+		return "Telefone atualizado com sucesso.";
 	}
 
 	public List<String> listarTelefones(Long id) {

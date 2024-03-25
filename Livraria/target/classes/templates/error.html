@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="layout_base :: head('Erro')"></head>
+
+<body>
+
+	<div th:replace="layout_base :: navbar"></div>
+
+	<div class="container mt-4 mb-4">
+		<div class="card border-danger mt-4">
+			<div class="card-header bg-danger text-white">
+				<h4 class="mb-0">Detalhes do Erro</h4>
+			</div>
+			<div class="card-body">
+				<table class="table table-striped">
+					<tr>
+						<th>Data</th>
+						<td th:text="${timestamp}"></td>
+					</tr>
+					<tr>
+						<th>Path</th>
+						<td th:text="${path}"></td>
+					</tr>
+					<tr>
+						<th>Error</th>
+						<td th:text="${error}"></td>
+					</tr>
+					<tr>
+						<th>Status</th>
+						<td th:text="${status}"></td>
+					</tr>
+					<tr>
+						<th>Message</th>
+						<td th:text="${message}"></td>
+					</tr>
+					<tr>
+						<th>Exception</th>
+						<td th:text="${exception}"></td>
+					</tr>
+					<tr>
+						<th>Trace</th>
+						<td th:text="${trace}"></td>
+					</tr>
+					<tr th:if="${msgErros != null}">
+						<th>Mensagem error de exception expecífica</th>
+						<td th:text="${msgErros}"></td>
+					</tr>
+					<tr th:if="${mensagemErro != null}">
+						<th>Mensagem error de BindingResult</th>
+						<td th:text="${mensagemErro}"></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="layout_base :: footer"></footer>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+</body>
+
+<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+</style>
+</html>

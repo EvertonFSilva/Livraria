@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout_base :: head('Finalizar Transação')"></head>
+<body>
+	<nav th:replace="layout_base :: navbar"></nav>
+
+	<div class="container mt-5 mb-5">
+		<div class="row justify-content-center">
+			<div class="col-md-8">
+				<div class="card">
+					<div class="card-body">
+						<h2 class="card-title text-center mb-4">Resumo da Transação</h2>
+						<div th:if="${pedido != null or aluguel != null}">
+							<div class="info-section">
+								<h4>
+									Informações do <span
+										th:text="${pedido != null ? 'Pedido' : (aluguel != null ? 'Aluguel' : '')}"></span>:
+								</h4>
+								<ul>
+									<li><strong>Cliente:</strong> <span
+										th:text="${pedido != null ? pedido.cliente.nome : aluguel.cliente.nome}"></span></li>
+									<li><strong>Data do <span
+											th:text="${pedido != null ? 'Pedido' : (aluguel != null ? 'Aluguel' : '')}"></span>:
+									</strong> <span
+										th:text="${pedido != null ? #temporals.format(pedido.dataPedido, 'dd-MM-yyyy HH:mm') : #temporals.format(aluguel.dataInicio, 'dd-MM-yyyy HH:mm')}"></span></li>
+									<li><strong>Valor Total:</strong> R$ <span
+										th:text="${pedido != null ? pedido.valorTotal : aluguel.valorTotal}"></span></li>
+									<li><strong>Forma de Pagamento:</strong> <span
+										th:text="${pedido != null ? pedido.formaPagamento : aluguel.formaPagamento}"></span></li>
+								</ul>
+							</div>
+							<div class="my-4">
+								<h4>Produtos Adicionados:</h4>
+								<div class="card">
+									<div class="card-body">
+										<th:block th:if="${pedido != null or aluguel != null}">
+											<th:each var="item"
+												th:each="item : ${pedido != null ? pedido.itens : aluguel.itens}">
+												<div class="card-text">
+													<span th:text="${item.livro.titulo}"></span> x <span
+														th:text="${item.quantidade}"></span>
+												</div>
+											</th:each>
+										</th:block>
+										<th:block th:unless="${pedido != null or aluguel != null}">
+											<div class="card-text">Nenhum item encontrado.</div>
+										</th:block>
+									</div>
+								</div>
+							</div>
+							<form
+								th:action="${pedido != null ? '/pedido/finalizar' : '/aluguel/finalizar'}"
+								method="post">
+								<input type="hidden" name="id"
+									th:value="${pedido != null ? pedido.id : aluguel.id}" />
+								<button type="submit" class="btn btn-primary btn-block">
+									Confirmar <span
+										th:text="${pedido != null ? 'Pedido' : (aluguel != null ? 'Aluguel' : '')}"></span>
+								</button>
+							</form>
+						</div>
+						<div th:unless="${pedido != null or aluguel != null}"
+							class="text-center font-weight-bold">
+							<p>
+								Nenhum <span
+									th:text="${pedido != null ? 'pedido' : (aluguel != null ? 'aluguel' : '')}"></span>
+								encontrado.
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="layout_base :: footer"></footer>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+
+	<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+
+.info-section {
+	margin-bottom: 20px;
+}
+
+.info-section h4 {
+	margin-bottom: 10px;
+}
+
+.info-section ul {
+	list-style: none;
+	padding: 0;
+}
+
+.info-section ul li {
+	margin-bottom: 5px;
+}
+</style>
+
+</body>
+</html>

@@ -49,13 +49,13 @@ public class Pessoa implements Serializable {
     @Valid
     private List<@NotBlank(message = "O telefone não pode ser em branco ou nulo") @Pattern(regexp = "\\d{9,11}", message = "O telefone deve conter entre 9 e 11 dígitos numéricos") String> telefones;
 
-    @Size(min = 20, max = 100, message = "O endereço deve conter entre 20 e 100 caracteres")
+    @Size(min = 10, max = 100, message = "O endereço deve conter entre 10 e 100 caracteres")
     @NotBlank(message = "O endereço não pode ser em branco ou nulo")
     @Column(length = 100)
     private String endereco;
 
 	@ManyToOne
-	@JoinColumn(name = "pessoa_fk")
+	@JoinColumn(name = "usuario_fk")
 	private Usuario usuario;
 
 	public Pessoa(String cpf, String nome, String email, String telefone, String endereco) {
@@ -112,6 +112,15 @@ public class Pessoa implements Serializable {
 
 	public void deletarTelefone(String telefone) {
 		this.telefones.remove(telefone);
+	}
+
+	public void atualizarTelefone(String telefoneAntigo, String telefoneNovo) {
+	    if (this.telefones != null && !this.telefones.isEmpty()) {
+	        int index = this.telefones.indexOf(telefoneAntigo);
+	        if (index != -1) {
+	            this.telefones.set(index, telefoneNovo);
+	        }
+	    }
 	}
 
 	public List<String> getTelefones() {

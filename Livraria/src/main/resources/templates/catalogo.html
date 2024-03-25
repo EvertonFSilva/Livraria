@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="layout_base :: head('Livraria - Catálogo')"></head>
+
+<body>
+	<nav th:replace="layout_base :: navbar"></nav>
+
+	<div class="container mt-4">
+		<div class="row">
+			<div class="col-lg-3 mb-4">
+				<form id="filtroForm" th:action="@{/catalogo}" method="get">
+					<h2 class="mb-4">Filtros</h2>
+					<div class="form-group">
+						<label for="preco">Preço</label> <select class="form-control"
+							id="preco" name="preco">
+							<option value="0-9999">Todos</option>
+							<option value="0-50">Até R$ 50,00</option>
+							<option value="50-100">R$ 50,00 - R$ 100,00</option>
+							<option value="100-200">R$ 100,00 - R$ 200,00</option>
+							<option value="200-9999">Acima de R$ 200,00</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="genero">Gênero</label> <select class="form-control"
+							id="genero" name="genero">
+							<option value="">Todos</option>
+							<option value="Ação">Ação</option>
+							<option value="Ficção">Ficção</option>
+							<option value="Romance">Romance</option>
+							<option value="Mistério">Mistério</option>
+							<option value="Fantasia">Fantasia</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="autor">Autor</label> <input type="text"
+							class="form-control" id="autor" name="autor"
+							placeholder="Nome do autor" minLength="3">
+					</div>
+					<div class="form-group">
+						<label for="titulo">Título</label> <input type="text"
+							class="form-control" id="titulo" name="titulo"
+							placeholder="Título do livro" minLength="3">
+					</div>
+					<button type="submit" class="btn btn-primary">Aplicar
+						Filtros</button>
+				</form>
+			</div>
+			<div class="col-lg-9">
+				<div class="container mt-4">
+					<h2 class="mb-4">Últimos Livros Adicionados</h2>
+					<div class="row" id="livrosContainer">
+						<div class="col-md-4 mb-4" th:each="livro : ${livros}">
+							<div class="card h-100">
+								<img class="card-img-top m-3" th:src="@{/imgs/DefaultBook.png}"
+									style="width: 220px; height: 220px;" alt="Card image cap">
+								<div class="card-body">
+									<h5 class="card-title" th:text="${livro.titulo}">Título</h5>
+									<h6 class="card-subtitle mb-2 text-muted"
+										th:text="${livro.autor}">Autor</h6>
+									<p class="card-text" th:text="${livro.genero}">Gênero</p>
+									<p class="card-price">
+										<span>R$</span><span th:text="${livro.preco}">Preço</span>
+									</p>
+									<th:block th:if="${session.usuarioLogado ne null}">
+										<div th:id="'adicionarItemForm-' + ${livro.id}"
+											style="display: none;">
+											<form th:id="'addItemForm-' + ${livro.id}" method="post">
+												<input type="hidden" name="livroId" th:value="${livro.id}" />
+												<div class="form-group">
+													<label for="quantidade">Quantidade:</label> <input
+														type="number" class="form-control" id="quantidade"
+														name="quantidade" value="1" min="1" />
+												</div>
+												<div class="form-group">
+													<label for="tipo">Escolha:</label> <select
+														class="form-control" id="tipo" name="tipo">
+														<option value="comprar">Comprar</option>
+														<option value="alugar">Alugar</option>
+													</select>
+												</div>
+												<button type="submit" class="btn btn-primary btn-block mb-3"
+													th:attr="onclick='updateAction(\'' + ${livro.id} + '\')'">Adicionar</button>
+												<button type="button" class="btn btn-danger btn-block"
+													th:attr="onclick='closeForm(\'' + ${livro.id} + '\')'">Fechar</button>
+											</form>
+										</div>
+										<button
+											th:if="${session.usuarioLogado ne null and session.usuarioLogado.permissao == 1}"
+											type="button" class="btn btn-primary btn-block"
+											th:attr="onclick='toggleForm(\'' + ${livro.id} + '\')'">Adicionar
+											ao Carrinho</button>
+									</th:block>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="layout_base :: footer"></footer>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+
+	<script>
+		function toggleForm(livroID) {
+			var formDiv = document.getElementById("adicionarItemForm-"
+					+ livroID);
+			formDiv.style.display = "block";
+		}
+
+		function closeForm(livroID) {
+			var formDiv = document.getElementById("adicionarItemForm-"
+					+ livroID);
+			formDiv.style.display = "none";
+		}
+
+		function updateAction(livroID) {
+			var addItemForm = document.getElementById("addItemForm-" + livroID);
+			var tipo = addItemForm.querySelector("#tipo").value;
+
+			if (tipo === "comprar") {
+				addItemForm.action = "/pedido/adicionarItem";
+			} else if (tipo === "alugar") {
+				addItemForm.action = "/aluguel/adicionarItem";
+			}
+		}
+
+		function formatarTitulo(input) {
+			let palavras = input.value.toLowerCase().split(' ');
+			for (let i = 0; i < palavras.length; i++) {
+				palavras[i] = palavras[i].charAt(0).toUpperCase()
+						+ palavras[i].substring(1);
+			}
+			let textoFormatado = palavras.join(' ');
+			input.value = textoFormatado;
+		}
+	</script>
+
+	<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+
+[id^="adicionarItemForm"] {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 9999;
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+	width: 80%;
+	max-width: 400px;
+}
+
+.card {
+	transition: transform 0.3s;
+}
+
+.card:hover {
+	transform: scale(1.05);
+}
+</style>
+
+</body>
+
+</html>

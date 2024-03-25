@@ -3,177 +3,237 @@ package br.edu.iff.livraria.controller.view;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import br.edu.iff.livraria.entities.Pedido;
+import br.edu.iff.livraria.entities.Usuario;
 import br.edu.iff.livraria.entities.Cliente;
-import br.edu.iff.livraria.entities.Livro;
 import br.edu.iff.livraria.service.ClienteService;
 import br.edu.iff.livraria.service.LivroService;
 import br.edu.iff.livraria.service.PedidoService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
-@RequestMapping("pedido")
+@RequestMapping("/pedido")
 public class PedidoController {
 
 	@Autowired
 	private PedidoService pedidoService;
 
 	@Autowired
-	private LivroService livroService;
-
-	@Autowired
 	public ClienteService clienteService;
 
-	@GetMapping("/CRUD")
-	public String page() throws Exception {
-		return "redirect:/pedido/CRUD/listarPedidos";
-	}
+	@Autowired
+	private LivroService livroService;
 
-	@GetMapping("/CRUD/addForm")
-	public String addPedidoForm(Model model, HttpServletRequest request) throws Exception {
-		model.addAttribute("pedido_add", new Pedido());
-		model.addAttribute("cliente_lista", clienteService.listarClientes());
-		String resposta = request.getParameter("resposta");
-		if (resposta != null) {
-			model.addAttribute("respostaAdd", URLDecoder.decode(resposta, "UTF-8"));
-		}
-		return "CRUD_Pedido";
-	}
-
-	@PostMapping("/CRUD/add")
-	public String addPedido(@Valid @ModelAttribute Pedido pedido, BindingResult resultado, Model model) {
-		Cliente cliente = pedido.getCliente();
-		if (resultado.hasErrors()) {
-			model.addAttribute("mensagemErro", resultado.getAllErrors());
-			return "";
-		} else {
-			String resposta = pedidoService.adicionarPedido(cliente.getId(), pedido.getFormaPagamento());
-			try {
-				return "redirect:/pedido/CRUD/addForm?resposta=" + URLEncoder.encode(resposta, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-				return "";
+	@GetMapping("/listar")
+	public String listarPedidos(Model model, HttpSession session, @RequestParam(required = false) String resultado)
+			throws UnsupportedEncodingException {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		if (usuario != null && usuario.getPermissao() == 2) {
+			model.addAttribute("pedidos", pedidoService.listarPedidos());
+			model.addAttribute("clientes", clienteService.listarClientes());
+			model.addAttribute("livros", livroService.listarLivros());
+			if (resultado != null) {
+				model.addAttribute("mensagem", URLDecoder.decode(resultado, "UTF-8"));
 			}
+			return "admin/pedidos";
 		}
-	}
-
-	@GetMapping("/CRUD/listarPedidos")
-	public String listarPedidos(Model model, HttpServletRequest request) throws Exception {
-		String cpf = request.getParameter("cpf");
-		String resposta = request.getParameter("resposta");
-		if (cpf == null) {
-			model.addAttribute("pedido_lista", pedidoService.listarPedidos());
-		} else {
-			List<Pedido> pedidos = clienteService.buscarPorCPF(URLDecoder.decode(cpf, "UTF-8")).getPedido();
-			if (pedidos == null) {
-				model.addAttribute("pedido_lista", new Pedido());
-			} else {
-				model.addAttribute("pedido_lista", pedidos);
-			}
-		}
-		if (resposta != null) {
-			model.addAttribute("respostaFinalizar", URLDecoder.decode(resposta, "UTF-8"));
-		}
-		return "CRUD_Pedido";
-	}
-
-	@PostMapping("/CRUD/buscaPedido")
-	public String buscarPedido(String cpf) throws Exception {
-		return "redirect:/pedido/CRUD/listarPedidos?cpf=" + URLEncoder.encode(cpf, "UTF-8");
-	}
-
-	@GetMapping("/CRUD/editar")
-	public String formEditar(Long id, Model model) throws Exception {
-		model.addAttribute("pedido_edit", pedidoService.buscarPorId(id));
-		model.addAttribute("cliente_lista", clienteService.listarClientes());
-		model.addAttribute("livro_lista", pedidoService.listarLivrosDoPedido(id));
-
-		return "CRUD_Pedido";
-	}
-
-	@PostMapping("/CRUD/atualizar")
-	public String atualizarPedido(Long id, @Valid @ModelAttribute Pedido pedido, BindingResult resultado, Model model) {
-		if (resultado.hasErrors()) {
-			model.addAttribute("mensagemErro", resultado.getAllErrors());
-			return "";
-		} else {
-			pedidoService.atualizarPedido(id, pedido.getCliente().getId(), pedido.getValorTotal(),
-					pedido.getDataPedido(), pedido.getDataEntrega(), pedido.getFormaPagamento());
-			return "redirect:/pedido/CRUD/editar?id=" + id;
-		}
-	}
-
-	@GetMapping("/CRUD/deletar")
-	public String deletarPedido(@RequestParam Long id) throws Exception {
-		pedidoService.deletarPedido(id);
-		return "redirect:/pedido/CRUD/listarPedidos";
-	}
-
-	@PostMapping("/CRUD/addItem")
-	public String addLivro(@RequestParam Long id, String titulo) throws Exception {
-		pedidoService.adicionarItemAoPedido(id, livroService.buscarPorTitulo(titulo).getId(), 1);
-		return "redirect:/pedido/CRUD/editar?id=" + id;
-	}
-
-	@GetMapping("/CRUD/removeItem")
-	public String removeLivro(@RequestParam Long id, Long itemId) throws Exception {
-		pedidoService.deletarItemDoPedido(id, itemId);
-		return "redirect:/pedido/CRUD/editar?id=" + id;
-	}
-
-	@GetMapping("/CRUD/finalizar")
-	public String finalizarPedido(Long id) throws Exception {
-		String resposta = pedidoService.finalizarPedido(id);
-		return "redirect:/pedido/CRUD/listarPedidos?resposta=" + URLEncoder.encode(resposta, "UTF-8");
-	}
-
-	@GetMapping("/carrinho/{id}")
-	public String carrinho(@PathVariable("id") Long id, Model model, HttpServletRequest request) throws Exception {
-		List<Livro> listaLivros = pedidoService.listarLivrosDoPedido(id);
-		model.addAttribute("pedido", pedidoService.buscarPorId(id));
-		model.addAttribute("lista_lista", listaLivros);
-		String resposta = request.getParameter("resposta");
-		if (resposta != null) {
-			model.addAttribute("respostaFinalizar", URLDecoder.decode(resposta, "UTF-8"));
-		}
-		return "carrinho";
-	}
-
-	@GetMapping("/carrinho/addItem")
-	public String addLivroCarrinho(Long id, String titulo) throws Exception {
-		pedidoService.adicionarItemAoPedido(id, livroService.buscarPorTitulo(titulo).getId(), 1);
 		return "redirect:/";
 	}
 
-	@GetMapping("/carrinho/removeItem")
-	public String removeItem(@RequestParam Long id, Long itemId) throws Exception {
-		pedidoService.deletarItemDoPedido(id, itemId);
-		return "redirect:/pedido/carrinho/" + pedidoService.buscarPorId(id).getCliente().getId();
+	@GetMapping("/carrinho")
+	public String exibirCarrinho(Model model, HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		Cliente cliente = clienteService.buscarPorLogin(usuario.getLogin());
+		if (cliente != null) {
+			List<Pedido> pedidos = pedidoService.buscarPedidosEmProgresso(cliente.getId());
+			if (!pedidos.isEmpty()) {
+				model.addAttribute("pedido", pedidos.get(0));
+			} else {
+				model.addAttribute("pedido", null);
+			}
+			return "carrinho";
+		}
+		return "redirect:/";
 	}
 
-	@GetMapping("/carrinho/finalizar")
-	public String finalizarPedidoCarrinho(Long id) throws Exception {
-		String resposta = pedidoService.finalizarPedido(id);
-		if (resposta.compareTo("Pedido finalizada com sucesso") == 0) {
+	@PostMapping("/adicionarItem")
+	public String adicionarItemAoPedido(@RequestParam("livroId") Long livroId,
+			@RequestParam("quantidade") int quantidade, HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		Cliente cliente = clienteService.buscarPorLogin(usuario.getLogin());
+		if (cliente != null) {
+			List<Pedido> pedidos = pedidoService.buscarPedidosEmProgresso(cliente.getId());
+			Pedido pedido;
+			if (pedidos.isEmpty()) {
+				pedido = pedidoService.adicionarPedido(cliente.getId(), "PIX");
+			} else {
+				pedido = pedidos.get(0);
+			}
+			pedidoService.adicionarItemAoPedido(pedido.getId(), livroId, quantidade);
+			return "redirect:/pedido/carrinho";
+		}
+		return "redirect:/";
+	}
+
+	@PostMapping("/alterar/pagamento")
+	public String alterarFormaPagamento(@RequestParam("tipo") String formaPagamento, HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		Cliente cliente = clienteService.buscarPorLogin(usuario.getLogin());
+		if (cliente != null) {
+			pedidoService.atualizarPedido(pedidoService.buscarPedidosEmProgresso(cliente.getId()).get(0).getId(),
+					cliente.getId(), 0, null, null, formaPagamento, false);
+			return "redirect:/pedido/carrinho";
+		}
+		return "redirect:/";
+	}
+
+	@PostMapping("/alterar/quantidade")
+	public String alterarQuantidadeItem(@RequestParam("itemId") Long itemId,
+			@RequestParam("novaQuantidade") int novaQuantidade, HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		Cliente cliente = clienteService.buscarPorLogin(usuario.getLogin());
+		if (cliente != null) {
+			pedidoService.atualizarItemDoPedido(pedidoService.buscarPedidosEmProgresso(cliente.getId()).get(0).getId(),
+					itemId, null, novaQuantidade);
+			return "redirect:/pedido/carrinho";
+		}
+		return "redirect:/";
+	}
+
+	@PostMapping("/deletarItem")
+	public String deletarItemDoPedido(@RequestParam("itemId") Long itemId, HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		Cliente cliente = clienteService.buscarPorLogin(usuario.getLogin());
+		if (cliente != null) {
+			pedidoService.deletarItemDoPedido(pedidoService.buscarPedidosEmProgresso(cliente.getId()).get(0).getId(),
+					itemId);
+			return "redirect:/pedido/carrinho";
+		}
+		return "redirect:/";
+	}
+
+	@PostMapping("/finalizar")
+	public String finalizarPedido(HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		Cliente cliente = clienteService.buscarPorLogin(usuario.getLogin());
+		if (cliente != null) {
+			pedidoService.finalizarPedido(pedidoService.buscarPedidosEmProgresso(cliente.getId()).get(0).getId());
 			return "redirect:/";
 		}
-
-		return "redirect:/pedido/carrinho/" + pedidoService.buscarPorId(id).getCliente().getId() + "?resposta="
-				+ URLEncoder.encode(resposta, "UTF-8");
+		return "redirect:/";
 	}
 
+	@GetMapping("/finalizar")
+	public String exibirPaginaFinalizarPedido(Model model, HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		Cliente cliente = clienteService.buscarPorLogin(usuario.getLogin());
+		if (cliente != null) {
+			List<Pedido> pedidos = pedidoService.buscarPedidosEmProgresso(cliente.getId());
+			if (!pedidos.isEmpty()) {
+				Pedido pedido = pedidos.get(0);
+				pedido.setDataPedido(LocalDateTime.now());
+				model.addAttribute("pedido", pedido);
+				return "finalizar";
+			}
+		}
+		return "redirect:/";
+	}
+
+	@PostMapping("/admin/adicionar")
+	public String adicionarPedido(@RequestParam("clienteId") Long clienteId,
+			@RequestParam("formaPagamento") String formaPagamento, Model model, HttpSession session)
+			throws UnsupportedEncodingException {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		if (usuario != null && usuario.getPermissao() == 2) {
+			Pedido pedido = pedidoService.adicionarPedido(clienteId, formaPagamento);
+			if (pedido == null) {
+				String mensagem = "Esse cliente já tem um pedido em progresso.";
+				return "redirect:/pedido/listar?resultado=" + URLEncoder.encode(mensagem, "UTF-8");
+			} else {
+				return "redirect:/pedido/listar";
+			}
+		}
+		return "redirect:/";
+	}
+
+	@PostMapping("/admin/deletar")
+	public String deletePedido(@RequestParam("pedidoId") Long pedidoId, Model model, HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		if (usuario != null && usuario.getPermissao() == 2) {
+			pedidoService.deletarPedido(pedidoId);
+			return "redirect:/pedido/listar";
+		}
+		return "redirect:/";
+	}
+
+	@PostMapping("/admin/editar")
+	public String editarPedido(@RequestParam("pedidoId") Long pedidoId, @RequestParam("clienteId") Long clienteId,
+			@RequestParam("valorTotal") float valorTotal,
+			@RequestParam("dataPedido") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataPedido,
+			@RequestParam("dataEntrega") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataEntrega,
+			@RequestParam("formaPagamento") String formaPagamento, @RequestParam("status") boolean status, Model model,
+			HttpSession session) throws UnsupportedEncodingException {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		if (usuario != null && usuario.getPermissao() == 2) {
+			List<Pedido> pedidosEmAberto = pedidoService.buscarPedidosEmProgresso(clienteId);
+			if (!pedidosEmAberto.isEmpty()) {
+				if (pedidosEmAberto.size() == 1 && pedidosEmAberto.get(0).getId() != pedidoId) {
+					if (pedidoService.buscarPorId(pedidoId).isFinalizado()) {
+						String mensagem = "Esse cliente já tem um aluguel em progresso.";
+						return "redirect:/aluguel/listar?resultado=" + URLEncoder.encode(mensagem, "UTF-8");
+					}
+				}
+			}
+			pedidoService.atualizarPedido(pedidoId, clienteId, valorTotal, dataPedido, dataEntrega, formaPagamento,
+					status);
+			return "redirect:/pedido/listar";
+		}
+		return "redirect:/";
+	}
+
+	@PostMapping("/admin/adicionarItem")
+	public String adicionarItemAoPedido(@RequestParam("pedidoId") Long pedidoId, @RequestParam("livroId") Long livroId,
+			@RequestParam("quantidade") int quantidade, Model model, HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		if (usuario != null && usuario.getPermissao() == 2) {
+			pedidoService.adicionarItemAoPedido(pedidoId, livroId, quantidade);
+			return "redirect:/pedido/listar";
+		}
+		return "redirect:/";
+	}
+
+	@PostMapping("/admin/deletarItem")
+	public String deletarItemDoPedido(@RequestParam("pedidoId") Long pedidoId, @RequestParam("itemId") Long itemId,
+			Model model, HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		if (usuario != null && usuario.getPermissao() == 2) {
+			pedidoService.deletarItemDoPedido(pedidoId, itemId);
+			return "redirect:/pedido/listar";
+		}
+		return "redirect:/";
+	}
+
+	@PostMapping("/admin/editarItem")
+	public String editarItemDoPedido(@RequestParam("pedidoId") Long pedidoId, @RequestParam("itemId") Long itemId,
+			@RequestParam("livroId") Long livroId, @RequestParam("novaQuantidade") int novaQuantidade, Model model,
+			HttpSession session) {
+		Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+		if (usuario != null && usuario.getPermissao() == 2) {
+			pedidoService.atualizarItemDoPedido(pedidoId, itemId, livroId, novaQuantidade);
+			return "redirect:/pedido/listar";
+		}
+		return "redirect:/";
+	}
 }

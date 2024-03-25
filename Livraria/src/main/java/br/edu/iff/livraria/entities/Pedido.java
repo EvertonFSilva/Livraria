@@ -20,7 +20,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
@@ -40,7 +39,6 @@ public class Pedido implements Serializable {
 	@PositiveOrZero(message = "O valor total deve ser maior ou igual a 0")
 	private float valorTotal;
 
-	@NotNull(message = "A data do pedido não pode ser nula")
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "data_pedido")
 	private LocalDateTime dataPedido;
@@ -89,6 +87,24 @@ public class Pedido implements Serializable {
 	public void setItens(List<Item> itens) {
 		this.itens = itens;
 	}
+	
+	public Item getItemById(Long itemId) {
+	    for (Item item : itens) {
+	        if (item.getId().equals(itemId)) {
+	            return item;
+	        }
+	    }
+	    return null;
+	}
+
+    public Item getItemByLivroId(Long livroId) {
+        for (Item item : itens) {
+            if (item.getLivro().getId().equals(livroId)) {
+                return item;
+            }
+        }
+        return null;
+    }
 
 	public void adicionarItem(Item item) {
 		this.itens.add(item);
@@ -141,14 +157,18 @@ public class Pedido implements Serializable {
 	public void setCliente(Cliente cliente) {
 		this.cliente = cliente;
 	}
-
+		
 	public boolean isFinalizado() {
 		return finalizado;
 	}
 
+	public void setFinalizado(boolean finalizado) {
+		this.finalizado = finalizado;
+	}
+
 	public void finalizar() {
-		this.finalizado = true;
 		this.dataPedido = LocalDateTime.now();
 		this.dataEntrega = LocalDateTime.now();
+		this.finalizado = true;
 	}
 }

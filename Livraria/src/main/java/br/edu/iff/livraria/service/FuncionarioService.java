@@ -25,20 +25,20 @@ public class FuncionarioService {
 		return funcionarioRepository.buscarPorCPF(cpf);
 	}
 
-    public Funcionario buscarPorLogin(String login) {
-        return funcionarioRepository.buscarPorLogin(login);
-    }
+	public Funcionario buscarPorLogin(String login) {
+		return funcionarioRepository.buscarPorLogin(login);
+	}
 
 	public String adicionarFuncionario(String login, String senha, String cpf, String nome, String email,
 			String telefone, String endereco, String cargo, float salario) {
 		Funcionario funcionarioExistente = funcionarioRepository.buscarPorCPF(cpf);
 		if (funcionarioExistente != null) {
-			return "Funcionário já cadastrado.";
+			return "Funcionário já cadastrado com esse CPF.";
 		}
 
-		Usuario novoUsuario = usuarioService.adicionarUsuario(login, senha, 1);
+		Usuario novoUsuario = usuarioService.adicionarUsuario(login, senha, 2);
 		if (novoUsuario == null) {
-			return "Erro ao adicionar usuário.";
+			return "Este nome de usuário já está em uso.";
 		}
 
 		Funcionario novoFuncionario = new Funcionario(cpf, nome, email, telefone, endereco, cargo, salario);
@@ -52,10 +52,6 @@ public class FuncionarioService {
 		Funcionario funcionarioExistente = buscarPorId(id);
 		if (funcionarioExistente == null) {
 			return "Funcionário não encontrado.";
-		}
-
-		if (!funcionarioExistente.getCpf().equals(cpf)) {
-			return "Esse Id não pertence a esse funcionário.";
 		}
 
 		if (!cpf.isEmpty()) {
@@ -134,6 +130,30 @@ public class FuncionarioService {
 		funcionarioExistente.deletarTelefone(telefone);
 		funcionarioRepository.saveAndFlush(funcionarioExistente);
 		return "Telefone deletado com sucesso.";
+	}
+
+	public String atualizarTelefone(Long id, String telefoneAntigo, String telefoneNovo) {
+		Funcionario funcionarioExistente = buscarPorId(id);
+		if (funcionarioExistente == null) {
+			return "Funcionário não encontrado.";
+		}
+
+		if (telefoneAntigo == null || telefoneAntigo.trim().isEmpty() || telefoneNovo == null
+				|| telefoneNovo.trim().isEmpty()) {
+			return "Telefones inválidos.";
+		}
+
+		if (!funcionarioRepository.existeTelefoneNoCPF(funcionarioExistente.getCpf(), telefoneAntigo)) {
+			return "Telefone antigo não encontrado.";
+		}
+
+		if (funcionarioRepository.existeTelefoneNoCPF(funcionarioExistente.getCpf(), telefoneNovo)) {
+			return "O novo telefone já está cadastrado para este funcionário.";
+		}
+
+		funcionarioExistente.atualizarTelefone(telefoneAntigo, telefoneNovo);
+		funcionarioRepository.saveAndFlush(funcionarioExistente);
+		return "Telefone atualizado com sucesso.";
 	}
 
 	public List<String> listarTelefones(Long id) {

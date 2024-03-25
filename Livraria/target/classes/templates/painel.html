@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout_base :: head('Painel')"></head>
+<body>
+	<nav th:replace="layout_base :: navbar"></nav>
+
+	<div class="container mt-5 mb-5">
+		<div class="row justify-content-center">
+			<div class="col-md-8">
+				<div class="card">
+					<div class="card-body">
+						<h2 class="card-title text-center mb-4">Painel</h2>
+						<div class="row">
+							<div class="col-md-4">
+								<div class="card">
+									<div class="card-body">
+										<h5 class="card-title">Clientes</h5>
+										<p class="card-text">Gerenciar clientes, visualizar
+											detalhes e histórico de compras.</p>
+										<a th:href="@{/cliente/listar}" class="btn btn-primary">Acessar</a>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-4">
+								<div class="card">
+									<div class="card-body">
+										<h5 class="card-title">Funcionários</h5>
+										<p class="card-text">Gerenciar funcionários, atribuir
+											permissões e visualizar detalhes.</p>
+										<a th:href="@{/funcionario/listar}" class="btn btn-primary">Acessar</a>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-4">
+								<div class="card">
+									<div class="card-body">
+										<h5 class="card-title">Usuários</h5>
+										<p class="card-text">Gerenciar usuários, permissões e
+											informações de acesso.</p>
+										<a th:href="@{/usuario/listar}" class="btn btn-primary">Acessar</a>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row mt-4">
+							<div class="col-md-4">
+								<div class="card">
+									<div class="card-body">
+										<h5 class="card-title">Pedidos</h5>
+										<p class="card-text">Visualizar pedidos, status de entrega
+											e gerenciar envios.</p>
+										<a th:href="@{/pedido/listar}" class="btn btn-primary">Acessar</a>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-4">
+								<div class="card">
+									<div class="card-body">
+										<h5 class="card-title">Aluguéis</h5>
+										<p class="card-text">Gerenciar aluguéis, prazos de
+											devolução e cobranças.</p>
+										<a th:href="@{/aluguel/listar}" class="btn btn-primary">Acessar</a>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-4">
+								<div class="card">
+									<div class="card-body">
+										<h5 class="card-title">Livros</h5>
+										<p class="card-text">Adicionar, editar e remover livros do
+											catálogo.</p>
+										<a th:href="@{/livro/listar}" class="btn btn-primary">Acessar</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="layout_base :: footer"></footer>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+
+	<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+</style>
+
+</body>
+</html>

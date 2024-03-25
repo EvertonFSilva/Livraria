@@ -21,7 +21,7 @@ public class LivroRestController {
 	@ResponseBody
 	@Operation(summary = "Adicionar um livro em específico")
 	public ResponseEntity<String> adicionarLivro(@RequestParam String titulo, @RequestParam String autor,
-			@RequestParam String genero, @RequestParam int qtdPaginas, @RequestParam float preco) {
+			@RequestParam String genero, @RequestParam int qtdPaginas, @RequestParam float preco) throws Exception {
 		try {
 			String mensagem = livroService.adicionarLivro(titulo, autor, genero, qtdPaginas, preco);
 			return ResponseEntity.ok(mensagem);
@@ -35,7 +35,7 @@ public class LivroRestController {
 	@Operation(summary = "Atualizar um livro em específico")
 	public ResponseEntity<String> atualizarLivro(@PathVariable Long id, @RequestParam String titulo,
 			@RequestParam String autor, @RequestParam String genero, @RequestParam int qtdPaginas,
-			@RequestParam float preco) {
+			@RequestParam float preco) throws Exception {
 		try {
 			String mensagem = livroService.atualizarLivro(id, titulo, autor, genero, qtdPaginas, preco);
 			return ResponseEntity.ok(mensagem);
@@ -47,7 +47,7 @@ public class LivroRestController {
 	@DeleteMapping("/{id}")
 	@ResponseBody
 	@Operation(summary = "Deletar um livro em específico")
-	public ResponseEntity<String> deletarLivro(@PathVariable Long id) {
+	public ResponseEntity<String> deletarLivro(@PathVariable Long id) throws Exception {
 		try {
 			String mensagem = livroService.deletarLivro(id);
 			return ResponseEntity.ok(mensagem);
@@ -59,7 +59,7 @@ public class LivroRestController {
 	@GetMapping("/{id}")
 	@ResponseBody
 	@Operation(summary = "Retornar um livro em específico")
-	public ResponseEntity<Livro> buscarLivro(@PathVariable Long id) {
+	public ResponseEntity<Livro> buscarLivro(@PathVariable Long id) throws Exception {
 		try {
 			Livro livro = livroService.buscarPorId(id);
 			return ResponseEntity.ok(livro);
@@ -71,7 +71,7 @@ public class LivroRestController {
 	@GetMapping
 	@ResponseBody
 	@Operation(summary = "Listar todos os livros")
-	public ResponseEntity<List<Livro>> listarLivros() {
+	public ResponseEntity<List<Livro>> listarLivros() throws Exception {
 		List<Livro> livros = livroService.listarLivros();
 		return ResponseEntity.ok(livros);
 	}

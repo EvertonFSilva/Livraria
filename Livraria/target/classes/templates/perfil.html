@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout_base :: head('Livraria - Perfil')"></head>
+<body>
+	<nav th:replace="layout_base :: navbar"></nav>
+
+	<div class="container mt-5 mb-5">
+		<div th:fragment="perfil">
+			<div class="row justify-content-center">
+				<div class="col-md-3">
+					<div class="text-center mb-3">
+						<button class="btn btn-dark btn-block mb-2"
+							onclick="mostrarConteudo('perfil')">Perfil</button>
+						<button class="btn btn-dark btn-block mb-2"
+							onclick="mostrarConteudo('pedidos')">Meus Pedidos</button>
+						<button class="btn btn-dark btn-block mb-2"
+							onclick="mostrarConteudo('alugueis')">Meus Aluguéis</button>
+					</div>
+				</div>
+				<div class="col-md-9">
+					<div class="card">
+						<div class="card-body">
+							<div id="perfil" class="conteudo-perfil">
+								<h2 class="card-title text-center mb-4">Perfil</h2>
+								<div class="text-center mb-4">
+									<img th:src="@{/imgs/DefaultProfilePhoto.png}"
+										alt="Imagem de Perfil" class="img-thumbnail rounded-circle"
+										style="width: 160px; height: 160px;">
+								</div>
+								<form
+									th:action="${session.usuarioLogado.permissao == 2 ? '/funcionario/editarPerfil' : '/cliente/editarPerfil'}"
+									th:object="${perfil}" method="post">
+									<div class="form-group" hidden>
+										<label for="username">Usuário:</label> <input type="text"
+											class="form-control" id="username"
+											th:value="*{usuario.login}" th:field="*{usuario.login}"
+											th:required="required">
+									</div>
+									<div class="form-group" hidden>
+										<label for="password">Senha:</label> <input type="text"
+											class="form-control" id="password"
+											th:value="*{usuario.senha}" th:field="*{usuario.senha}"
+											th:required="required">
+									</div>
+									<div class="form-group">
+										<label for="cpf">CPF:</label> <input type="text"
+											class="form-control" id="cpf" th:value="*{cpf}"
+											th:field="*{cpf}" th:required="required">
+									</div>
+									<div class="form-group">
+										<label for="nome">Nome:</label> <input type="text"
+											class="form-control" id="nome" th:value="*{nome}"
+											th:field="*{nome}" th:required="required">
+									</div>
+									<div class="form-group">
+										<label for="email">Email:</label> <input type="email"
+											class="form-control" id="email" th:value="*{email}"
+											th:field="*{email}" th:required="required">
+									</div>
+									<div class="form-group">
+										<label for="telefone">Telefone Principal:</label> <input
+											type="text" class="form-control" id="telefone"
+											th:value="${telefones != null and telefones.size() > 0 ? telefones[0] : ''}"
+											th:field="*{telefones[0]}" th:required="required">
+									</div>
+									<div class="form-group">
+										<label for="endereco">Endereço:</label> <input type="text"
+											class="form-control" id="endereco" th:value="*{endereco}"
+											th:field="*{endereco}" th:required="required">
+									</div>
+									<div th:if="${session.usuarioLogado.permissao == 2}">
+										<input type="hidden" th:value="*{cargo}" th:field="*{cargo}">
+										<input type="hidden" th:value="*{salario}"
+											th:field="*{salario}">
+									</div>
+									<div th:if="${session.usuarioLogado.permissao == 2}">
+										<div class="form-group">
+											<label for="cargo">Cargo:</label> <input type="text"
+												class="form-control ignore-edit" id="cargo"
+												th:value="*{cargo}" th:field="*{cargo}" disabled>
+										</div>
+										<div class="form-group">
+											<label for="salario">Salário:</label> <input type="text"
+												class="form-control ignore-edit" id="salario"
+												th:value="*{salario}" th:field="*{salario}" disabled>
+										</div>
+									</div>
+									<button type="button" class="btn btn-secondary btn-block"
+										id="editarBtn">Editar</button>
+									<button type="submit" class="btn btn-primary btn-block d-none"
+										id="salvarBtn">Salvar</button>
+									<button type="button" class="btn btn-danger btn-block d-none"
+										id="cancelarBtn">Cancelar Edição</button>
+								</form>
+								<div th:if="${mensagem}" class="alert alert-success mt-3"
+									role="alert" id="mensagemResultado">
+									<p th:text="${mensagem}" class="text-center"></p>
+								</div>
+							</div>
+							<div id="pedidos" class="conteudo-pedidos" style="display: none;">
+								<h2 class="card-title text-center mb-4">Meus Pedidos</h2>
+								<div class="row" th:if="${pedidos.empty}">
+									<div class="col-md-12">
+										<p class="text-center">Ainda não há nenhuma compra.</p>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-12 mb-4" th:each="pedido : ${pedidos}">
+										<div class="card border-primary">
+											<div class="card-header bg-primary text-white">
+												<h5 class="card-title">
+													Pedido #<span th:text="${pedido.id}"></span>
+												</h5>
+											</div>
+											<div class="card-body">
+												<p class="card-text">
+													Preço Total: <span th:text="${pedido.valorTotal}"></span>
+												</p>
+												<p>
+													Data do Pedido: <span
+														th:text="${#temporals.format(pedido.dataPedido, 'dd-MM-yyyy HH:mm')}"></span>
+												</p>
+												<ul class="list-group list-group-flush"
+													style="display: none;">
+													<li class="list-group-item"
+														th:each="item : ${pedido.itens}">
+														<div class="row">
+															<div class="col-md-3">
+																<img th:src="@{/imgs/DefaultBook.png}"
+																	alt="Imagem do Livro" class="img-thumbnail"
+																	style="width: 100px; height: 80px;">
+															</div>
+															<div class="col-md-9">
+																<span th:text="${item.livro.titulo}"></span><br>
+																Preço: <span th:text="${item.livro.preco}"></span><br>
+																Quantidade: <span th:text="${item.quantidade}"></span>
+															</div>
+														</div>
+													</li>
+												</ul>
+												<button type="button" class="btn btn-primary mt-3"
+													onclick="mostrarItensComprados(this)">Visualizar
+													Itens</button>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div id="alugueis" class="conteudo-alugueis"
+								style="display: none;">
+								<h2 class="card-title text-center mb-4">Meus Aluguéis</h2>
+								<div class="row" th:if="${alugueis.empty}">
+									<div class="col-md-12">
+										<p class="text-center">Ainda não há nenhum aluguel.</p>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-12 mb-4" th:each="aluguel : ${alugueis}">
+										<div class="card border-primary">
+											<div class="card-header bg-primary text-white">
+												<h5 class="card-title">
+													Aluguel #<span th:text="${aluguel.id}"></span>
+												</h5>
+											</div>
+											<div class="card-body">
+												<p>
+													Data de Início: <span
+														th:text="${#temporals.format(aluguel.dataInicio, 'dd-MM-yyyy HH:mm')}"></span>
+												</p>
+												<p>
+													Data de Entrega: <span
+														th:text="${#temporals.format(aluguel.dataEntrega, 'dd-MM-yyyy HH:mm')}"></span>
+												</p>
+												<p class="card-text">
+													Preço Total: <span th:text="${aluguel.valorTotal}"></span>
+												</p>
+												<ul class="list-group list-group-flush"
+													style="display: none;">
+													<li class="list-group-item"
+														th:each="item : ${aluguel.itens}">
+														<div class="row">
+															<div class="col-md-3">
+																<img th:src="@{/imgs/DefaultBook.png}"
+																	alt="Imagem do Livro" class="img-thumbnail"
+																	style="width: 100px; height: 80px;">
+															</div>
+															<div class="col-md-9">
+																<span th:text="${item.livro.titulo}"></span><br>
+																Preço: <span th:text="${item.livro.preco}"></span><br>
+																Quantidade: <span th:text="${item.quantidade}"></span>
+															</div>
+														</div>
+													</li>
+												</ul>
+												<button type="button" class="btn btn-primary mt-3"
+													onclick="mostrarItensAlugados(this)">Visualizar
+													Itens</button>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="layout_base :: footer"></footer>
+
+	<th:block th:replace="layout_base :: scripts"></th:block>
+
+	<script>
+		function mostrarItensComprados(button) {
+			var cardBody = button.parentNode;
+			var itemList = cardBody.querySelector('.list-group');
+			var buttonText = button.textContent.trim();
+			if (itemList.style.display === 'none') {
+				itemList.style.display = 'block';
+				button.textContent = 'Fechar Exibição';
+			} else {
+				itemList.style.display = 'none';
+				button.textContent = 'Visualizar Itens';
+			}
+		}
+
+		function mostrarConteudo(conteudo) {
+			document.getElementById('perfil').style.display = 'none';
+			document.getElementById('pedidos').style.display = 'none';
+			document.getElementById('alugueis').style.display = 'none';
+
+			document.getElementById(conteudo).style.display = 'block';
+		}
+
+		document
+				.getElementById('editarBtn')
+				.addEventListener(
+						'click',
+						function() {
+							document.getElementById('editarBtn').classList
+									.add('d-none');
+							document.getElementById('salvarBtn').classList
+									.remove('d-none');
+							document.getElementById('cancelarBtn').classList
+									.remove('d-none');
+							var formInputs = document
+									.querySelectorAll('input, select');
+							formInputs.forEach(function(input) {
+								if (!input.classList.contains('ignore-edit')) {
+									input.removeAttribute('disabled');
+								}
+							});
+							document.getElementById('mensagemResultado').style.display = 'none';
+						});
+
+		document
+				.getElementById('cancelarBtn')
+				.addEventListener(
+						'click',
+						function() {
+							document.getElementById('editarBtn').classList
+									.remove('d-none');
+							document.getElementById('salvarBtn').classList
+									.add('d-none');
+							document.getElementById('cancelarBtn').classList
+									.add('d-none');
+							var formInputs = document
+									.querySelectorAll('input, select');
+							formInputs.forEach(function(input) {
+								if (!input.classList.contains('ignore-edit')) {
+									input.setAttribute('disabled', 'disabled');
+								}
+							});
+							document.getElementById('mensagemResultado').style.display = 'none';
+						});
+
+		window.addEventListener('load', function() {
+			var formInputs = document.querySelectorAll('input, select');
+			formInputs.forEach(function(input) {
+				if (!input.classList.contains('ignore-edit')) {
+					input.setAttribute('disabled', 'disabled');
+				}
+			});
+		});
+	</script>
+
+	<style>
+body {
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+}
+
+footer {
+	margin-top: auto;
+}
+</style>
+</body>
+</html>
