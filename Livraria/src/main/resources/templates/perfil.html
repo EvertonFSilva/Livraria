@@ -11,10 +11,12 @@
 					<div class="text-center mb-3">
 						<button class="btn btn-dark btn-block mb-2"
 							onclick="mostrarConteudo('perfil')">Perfil</button>
-						<button class="btn btn-dark btn-block mb-2"
-							onclick="mostrarConteudo('pedidos')">Meus Pedidos</button>
-						<button class="btn btn-dark btn-block mb-2"
-							onclick="mostrarConteudo('alugueis')">Meus Aluguéis</button>
+						<div th:if="${session.usuarioLogado.permissao == 1}">
+							<button class="btn btn-dark btn-block mb-2"
+								onclick="mostrarConteudo('pedidos')">Meus Pedidos</button>
+							<button class="btn btn-dark btn-block mb-2"
+								onclick="mostrarConteudo('alugueis')">Meus Aluguéis</button>
+						</div>
 					</div>
 				</div>
 				<div class="col-md-9">
@@ -97,104 +99,107 @@
 									<p th:text="${mensagem}" class="text-center"></p>
 								</div>
 							</div>
-							<div id="pedidos" class="conteudo-pedidos" style="display: none;">
-								<h2 class="card-title text-center mb-4">Meus Pedidos</h2>
-								<div class="row" th:if="${pedidos.empty}">
-									<div class="col-md-12">
-										<p class="text-center">Ainda não há nenhuma compra.</p>
+							<div th:if="${session.usuarioLogado.permissao == 1}">
+								<div id="pedidos" class="conteudo-pedidos"
+									style="display: none;">
+									<h2 class="card-title text-center mb-4">Meus Pedidos</h2>
+									<div class="row" th:if="${pedidos == null}">
+										<div class="col-md-12">
+											<p class="text-center">Ainda não há nenhuma compra.</p>
+										</div>
 									</div>
-								</div>
-								<div class="row">
-									<div class="col-md-12 mb-4" th:each="pedido : ${pedidos}">
-										<div class="card border-primary">
-											<div class="card-header bg-primary text-white">
-												<h5 class="card-title">
-													Pedido #<span th:text="${pedido.id}"></span>
-												</h5>
-											</div>
-											<div class="card-body">
-												<p class="card-text">
-													Preço Total: <span th:text="${pedido.valorTotal}"></span>
-												</p>
-												<p>
-													Data do Pedido: <span
-														th:text="${#temporals.format(pedido.dataPedido, 'dd-MM-yyyy HH:mm')}"></span>
-												</p>
-												<ul class="list-group list-group-flush"
-													style="display: none;">
-													<li class="list-group-item"
-														th:each="item : ${pedido.itens}">
-														<div class="row">
-															<div class="col-md-3">
-																<img th:src="@{/imgs/DefaultBook.png}"
-																	alt="Imagem do Livro" class="img-thumbnail"
-																	style="width: 100px; height: 80px;">
+									<div class="row">
+										<div class="col-md-12 mb-4" th:each="pedido : ${pedidos}">
+											<div class="card border-primary">
+												<div class="card-header bg-primary text-white">
+													<h5 class="card-title">
+														Pedido #<span th:text="${pedido.id}"></span>
+													</h5>
+												</div>
+												<div class="card-body">
+													<p class="card-text">
+														Preço Total: <span th:text="${pedido.valorTotal}"></span>
+													</p>
+													<p>
+														Data do Pedido: <span
+															th:text="${#temporals.format(pedido.dataPedido, 'dd-MM-yyyy HH:mm')}"></span>
+													</p>
+													<ul class="list-group list-group-flush"
+														style="display: none;">
+														<li class="list-group-item"
+															th:each="item : ${pedido.itens}">
+															<div class="row">
+																<div class="col-md-3">
+																	<img th:src="@{/imgs/DefaultBook.png}"
+																		alt="Imagem do Livro" class="img-thumbnail"
+																		style="width: 100px; height: 80px;">
+																</div>
+																<div class="col-md-9">
+																	<span th:text="${item.livro.titulo}"></span><br>
+																	Preço: <span th:text="${item.livro.preco}"></span><br>
+																	Quantidade: <span th:text="${item.quantidade}"></span>
+																</div>
 															</div>
-															<div class="col-md-9">
-																<span th:text="${item.livro.titulo}"></span><br>
-																Preço: <span th:text="${item.livro.preco}"></span><br>
-																Quantidade: <span th:text="${item.quantidade}"></span>
-															</div>
-														</div>
-													</li>
-												</ul>
-												<button type="button" class="btn btn-primary mt-3"
-													onclick="mostrarItensComprados(this)">Visualizar
-													Itens</button>
+														</li>
+													</ul>
+													<button type="button" class="btn btn-primary mt-3"
+														onclick="mostrarItensComprados(this)">Visualizar
+														Itens</button>
+												</div>
 											</div>
 										</div>
 									</div>
 								</div>
-							</div>
-							<div id="alugueis" class="conteudo-alugueis"
-								style="display: none;">
-								<h2 class="card-title text-center mb-4">Meus Aluguéis</h2>
-								<div class="row" th:if="${alugueis.empty}">
-									<div class="col-md-12">
-										<p class="text-center">Ainda não há nenhum aluguel.</p>
+								<div id="alugueis" class="conteudo-alugueis"
+									style="display: none;">
+									<h2 class="card-title text-center mb-4">Meus Aluguéis</h2>
+									<div class="row" th:if="${alugueis == null}">
+										<div class="col-md-12">
+											<p class="text-center">Ainda não há nenhum aluguel.</p>
+										</div>
 									</div>
-								</div>
-								<div class="row">
-									<div class="col-md-12 mb-4" th:each="aluguel : ${alugueis}">
-										<div class="card border-primary">
-											<div class="card-header bg-primary text-white">
-												<h5 class="card-title">
-													Aluguel #<span th:text="${aluguel.id}"></span>
-												</h5>
-											</div>
-											<div class="card-body">
-												<p>
-													Data de Início: <span
-														th:text="${#temporals.format(aluguel.dataInicio, 'dd-MM-yyyy HH:mm')}"></span>
-												</p>
-												<p>
-													Data de Entrega: <span
-														th:text="${#temporals.format(aluguel.dataEntrega, 'dd-MM-yyyy HH:mm')}"></span>
-												</p>
-												<p class="card-text">
-													Preço Total: <span th:text="${aluguel.valorTotal}"></span>
-												</p>
-												<ul class="list-group list-group-flush"
-													style="display: none;">
-													<li class="list-group-item"
-														th:each="item : ${aluguel.itens}">
-														<div class="row">
-															<div class="col-md-3">
-																<img th:src="@{/imgs/DefaultBook.png}"
-																	alt="Imagem do Livro" class="img-thumbnail"
-																	style="width: 100px; height: 80px;">
+									<div class="row">
+										<div class="col-md-12 mb-4" th:each="aluguel : ${alugueis}">
+											<div class="card border-primary">
+												<div class="card-header bg-primary text-white">
+													<h5 class="card-title">
+														Aluguel #<span th:text="${aluguel.id}"></span>
+													</h5>
+												</div>
+												<div class="card-body">
+													<p>
+														Data de Início: <span
+															th:text="${#temporals.format(aluguel.dataInicio, 'dd-MM-yyyy HH:mm')}"></span>
+													</p>
+													<p>
+														Data de Entrega: <span
+															th:text="${#temporals.format(aluguel.dataEntrega, 'dd-MM-yyyy HH:mm')}"></span>
+													</p>
+													<p class="card-text">
+														Preço Total: <span th:text="${aluguel.valorTotal}"></span>
+													</p>
+													<ul class="list-group list-group-flush"
+														style="display: none;">
+														<li class="list-group-item"
+															th:each="item : ${aluguel.itens}">
+															<div class="row">
+																<div class="col-md-3">
+																	<img th:src="@{/imgs/DefaultBook.png}"
+																		alt="Imagem do Livro" class="img-thumbnail"
+																		style="width: 100px; height: 80px;">
+																</div>
+																<div class="col-md-9">
+																	<span th:text="${item.livro.titulo}"></span><br>
+																	Preço: <span th:text="${item.livro.preco}"></span><br>
+																	Quantidade: <span th:text="${item.quantidade}"></span>
+																</div>
 															</div>
-															<div class="col-md-9">
-																<span th:text="${item.livro.titulo}"></span><br>
-																Preço: <span th:text="${item.livro.preco}"></span><br>
-																Quantidade: <span th:text="${item.quantidade}"></span>
-															</div>
-														</div>
-													</li>
-												</ul>
-												<button type="button" class="btn btn-primary mt-3"
-													onclick="mostrarItensAlugados(this)">Visualizar
-													Itens</button>
+														</li>
+													</ul>
+													<button type="button" class="btn btn-primary mt-3"
+														onclick="mostrarItensAlugados(this)">Visualizar
+														Itens</button>
+												</div>
 											</div>
 										</div>
 									</div>

@@ -133,10 +133,12 @@ public class ClienteController {
 			Cliente cliente = clienteService.buscarPorLogin(usuario.getLogin());
 			if (cliente != null) {
 				usuarioService.atualizarUsuario(id, login, senha, 0);
-				if (cliente.getTelefones().isEmpty()) {
-					clienteService.adicionarTelefone(id, telefone);
-				} else {
-					clienteService.atualizarTelefone(id, cliente.getTelefones().get(0), telefone);
+				if (!telefone.isEmpty()) {
+					if (cliente.getTelefones().isEmpty()) {
+						clienteService.adicionarTelefone(id, telefone);
+					} else {
+						clienteService.atualizarTelefone(id, cliente.getTelefones().get(0), telefone);
+					}					
 				}
 				clienteService.atualizarCliente(id, cpf, nome, email, endereco);
 				return "redirect:/cliente/listar";
